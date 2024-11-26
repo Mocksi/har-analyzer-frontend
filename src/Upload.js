@@ -2,15 +2,24 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import './Upload.css';
 
 function Upload() {
   const [file, setFile] = useState(null);
   const [persona, setPersona] = useState('Developer');
   const [jobId, setJobId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      setError('Please select a HAR file');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     const formData = new FormData();
     formData.append('harfile', file);
@@ -23,38 +32,64 @@ function Upload() {
       );
       setJobId(response.data.jobId);
     } catch (error) {
+      setError(error.response?.data?.message || 'Error uploading file');
       console.error('Error uploading file:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const personas = [
+    { value: 'Developer', description: 'Focus on performance optimization and debugging' },
+    { value: 'QA Professional', description: 'Emphasis on testing and quality assurance' },
+    { value: 'Sales Engineer', description: 'Business-focused insights and demonstrations' }
+  ];
+
   if (jobId) {
-    // Redirect to results page
     window.location.href = `/results/${jobId}`;
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Select Persona:
-        <select value={persona} onChange={(e) => setPersona(e.target.value)}>
-          <option value="Developer">Developer</option>
-          <option value="QA Professional">QA Professional</option>
-          <option value="Sales Engineer">Sales Engineer</option>
-          {/* Add more personas as needed */}
-        </select>
-      </label>
-      <br />
-      <label>
-        Upload HAR File:
-        <input
-          type="file"
-          accept=".har"
-          onChange={(e) => setFile(e.target.files[0])}
-        />
-      </label>
-      <br />
-      <button type="submit">Submit</button>
-    </form>
+    <div className="upload-container">
+      <h1>HAR File Analyzer</h1>
+      <form onSubmit={handleSubmit} className="upload-form">
+        <div className="form-group">
+          <label>Select Your Role:</label>
+          <select 
+            value={persona} 
+            onChange={(e) => setPersona(e.target.value)}
+            className="persona-select"
+          >
+            {personas.map(p => (
+              <option key={p.value} value={p.value}>{p.value}</option>
+            ))}
+          </select>
+          <p className="persona-description">
+            {personas.find(p => p.value === persona)?.description}
+          </p>
+        </div>
+
+        <div className="form-group">
+          <label>Upload HAR File:</label>
+          <input
+            type="file"
+            accept=".har"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="file-input"
+          />
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+        
+        <button 
+          type="submit" 
+          disabled={loading || !file}
+          className="submit-button"
+        >
+          {loading ? 'Processing...' : 'Analyze HAR File'}
+        </button>
+      </form>
+    </div>
   );
 }
 

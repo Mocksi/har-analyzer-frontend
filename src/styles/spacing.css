@@ -1,0 +1,32 @@
+:root {
+  /* Base spacing unit: 4px */
+  --space-xxs: 0.25rem;  /* 4px */
+  --space-xs: 0.5rem;    /* 8px */
+  --space-sm: 0.75rem;   /* 12px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+  --space-xxl: 3rem;     /* 48px */
+  
+  /* Component-specific spacing */
+  --card-padding: var(--space-lg);
+  --section-spacing: var(--space-xxl);
+  --grid-gap: var(--space-lg);
+  --input-padding: var(--space-sm) var(--space-md);
+}
+
+/* Apply spacing system */
+.metrics-panel {
+  padding: var(--card-padding);
+  margin-bottom: var(--section-spacing);
+}
+
+.metrics-grid {
+  gap: var(--grid-gap);
+}
+
+.metric-card {
+  padding: var(--card-padding);
+}
+
+/* ... continue with other components */ 

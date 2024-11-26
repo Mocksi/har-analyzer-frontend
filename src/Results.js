@@ -1,51 +1,77 @@
 // src/Results.js
 
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { PersonaSwitcher } from './components/PersonaSwitcher';
+import { SearchAndFilter } from './components/SearchAndFilter';
+import { MetricsDrilldown } from './components/MetricsDrilldown';
+import { MetricsPanel } from './components/MetricsPanel';
+import { PerformanceCharts } from './components/PerformanceCharts';
+import { InsightsPanel } from './components/InsightsPanel';
+import { useDataRefresh } from './hooks/useDataRefresh';
+import './Results.css';
 
 function Results() {
-  const { jobId } = useParams();
-  const [result, setResult] = useState(null);
-  const [status, setStatus] = useState('Processing');
+  const [currentPersona, setCurrentPersona] = useState('developer');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilters, setActiveFilters] = useState([]);
+  const [selectedMetric, setSelectedMetric] = useState(null);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/results/${jobId}`
-        );
-        if (response.data.status === 'Processing') {
-          setStatus('Processing');
-        } else {
-          setResult(response.data);
-          setStatus('Completed');
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error('Error fetching results:', error);
-        clearInterval(interval);
-      }
-    }, 5000); // Poll every 5 seconds
+  const { data, loading, error, refresh } = useDataRefresh(
+    () => fetchAnalysisResults(id, currentPersona),
+    30000
+  );
 
-    return () => clearInterval(interval);
-  }, [jobId]);
+  const filteredData = React.useMemo(() => {
+    if (!data) return null;
+    
+    return filterDataBySearchAndFilters(data, searchTerm, activeFilters);
+  }, [data, searchTerm, activeFilters]);
 
-  if (status === 'Processing') {
-    return <div>Your request is being processed. Please wait...</div>;
-  }
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} onRetry={refresh} />;
 
-  if (result) {
-    return (
-      <div>
-        <h2>Insights</h2>
-        <p>{result.insights}</p>
-        {/* Display more details as needed */}
+  return (
+    <div className="results-container">
+      <header className="results-header">
+        <h1>Analysis Results</h1>
+        <PersonaSwitcher 
+          currentPersona={currentPersona}
+          onPersonaChange={setCurrentPersona}
+        />
+      </header>
+
+      <SearchAndFilter
+        onSearch={setSearchTerm}
+        onFilter={setActiveFilters}
+      />
+
+      <div className="results-content">
+        <MetricsPanel 
+          metrics={filteredData?.metrics}
+          persona={currentPersona}
+          onMetricSelect={setSelectedMetric}
+        />
+
+        {selectedMetric && (
+          <MetricsDrilldown
+            metric={selectedMetric}
+            timeseriesData={data.timeseriesData[selectedMetric.id]}
+            onClose={() => setSelectedMetric(null)}
+          />
+        )}
+
+        <PerformanceCharts 
+          data={filteredData?.metrics}
+          persona={currentPersona}
+        />
+
+        <InsightsPanel 
+          insights={filteredData?.insights}
+          persona={currentPersona}
+        />
       </div>
-    );
-  }
-
-  return <div>Error fetching results.</div>;
+    </div>
+  );
 }
 
 export default Results;

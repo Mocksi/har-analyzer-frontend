@@ -1,0 +1,22 @@
+.button {
+  background-color: var(--primary-fixed);
+  color: var(--white);
+  font-family: Poppins, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.button.is-secondary {
+  background-color: var(--black-lite);
+  border: 1px solid var(--dark-grey);
+} 
