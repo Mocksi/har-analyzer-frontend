@@ -3,7 +3,6 @@
   border-radius: 12px;
   padding: var(--space-xl);
   box-shadow: var(--shadow-lg);
-  transition: var(--transition-base);
 }
 
 .drilldown-header {
@@ -24,7 +23,7 @@
   border: 1px solid var(--dark-grey);
   border-radius: 8px;
   padding: var(--space-sm) var(--space-md);
-  transition: var(--transition-fast);
+  font-family: 'Spline Sans Mono', monospace;
 }
 
 .detail-level-toggle {
@@ -37,7 +36,11 @@
 .toggle-btn {
   padding: var(--space-sm) var(--space-md);
   border-radius: 6px;
-  transition: var(--transition-fast);
+  border: none;
+  background: none;
+  color: var(--light-grey);
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .toggle-btn.active {
@@ -57,6 +60,13 @@
   border-radius: 8px;
   padding: var(--space-lg);
   box-shadow: var(--shadow-sm);
+}
+
+.detail-value {
+  font-family: 'Spline Sans Mono', monospace;
+  font-size: 1.5rem;
+  color: var(--white);
+  margin: var(--space-xs) 0;
 }
 
 @media (max-width: var(--breakpoint-md)) {
