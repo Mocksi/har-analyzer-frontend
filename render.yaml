@@ -1,0 +1,8 @@
+services:
+  - type: static
+    name: har-analyzer-frontend
+    buildCommand: npm install && npm run build
+    publishDir: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://har-analyzer-backend.onrender.com
