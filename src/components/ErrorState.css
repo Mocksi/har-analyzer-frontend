@@ -1,0 +1,34 @@
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background-color: var(--black-lite);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin: var(--space-xl) auto;
+  max-width: 600px;
+}
+
+.error-state p {
+  color: var(--error);
+  font-family: 'Spline Sans Mono', monospace;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.error-state button {
+  padding: var(--space-sm) var(--space-lg);
+  background-color: var(--primary-fixed);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Spline Sans Mono', monospace;
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.error-state button:hover {
+  background-color: var(--primary-hover);
+} 
