@@ -1,23 +1,28 @@
 // src/Results.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { PersonaSwitcher } from './components/PersonaSwitcher';
 import { SearchAndFilter } from './components/SearchAndFilter';
 import { MetricsDrilldown } from './components/MetricsDrilldown';
 import { MetricsPanel } from './components/MetricsPanel';
 import { PerformanceCharts } from './components/PerformanceCharts';
 import { InsightsPanel } from './components/InsightsPanel';
+import { LoadingState } from './components/LoadingState';
+import { ErrorState } from './components/ErrorState';
 import { useDataRefresh } from './hooks/useDataRefresh';
+import { fetchAnalysisResults, filterDataBySearchAndFilters } from './utils/dataUtils';
 import './Results.css';
 
 function Results() {
+  const { jobId } = useParams();
   const [currentPersona, setCurrentPersona] = useState('developer');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [selectedMetric, setSelectedMetric] = useState(null);
 
   const { data, loading, error, refresh } = useDataRefresh(
-    () => fetchAnalysisResults(id, currentPersona),
+    () => fetchAnalysisResults(jobId, currentPersona),
     30000
   );
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Bar, Pie, Line, Chart as ChartJS } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -43,8 +42,8 @@ const darkTheme = {
   }
 };
 
-Chart.defaults.color = 'var(--light-grey)';
-Chart.defaults.font.family = 'Spline Sans Mono, monospace';
+ChartJS.defaults.color = 'var(--light-grey)';
+ChartJS.defaults.font.family = 'Spline Sans Mono, monospace';
 
 export function PerformanceCharts({ metrics }) {
   const statusCodeData = {
