@@ -16,19 +16,18 @@ export async function fetchAnalysisResults(jobId, persona) {
 
 export function filterDataBySearchAndFilters(data, searchTerm, activeFilters) {
   if (!data) return null;
-  
+  if (!searchTerm && (!activeFilters || !activeFilters.length)) return data;
+
   let filteredData = { ...data };
   
-  if (searchTerm || activeFilters.length > 0) {
-    if (filteredData.insights) {
-      filteredData.insights = filteredData.insights.filter(insight => {
-        const matchesSearch = !searchTerm || 
-          insight.message.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilters = !activeFilters.length || 
-          activeFilters.includes(insight.severity);
-        return matchesSearch && matchesFilters;
-      });
-    }
+  if (filteredData.insights) {
+    filteredData.insights = filteredData.insights.filter(insight => {
+      const matchesSearch = !searchTerm || 
+        insight.message.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilters = !activeFilters.length || 
+        activeFilters.includes(insight.severity);
+      return matchesSearch && matchesFilters;
+    });
   }
   
   return filteredData;

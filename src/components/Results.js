@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { PersonaSwitcher } from './components/PersonaSwitcher';
-import { SearchAndFilter } from './components/SearchAndFilter';
-import { MetricsDrilldown } from './components/MetricsDrilldown';
-import { MetricsPanel } from './components/MetricsPanel';
-import { PerformanceCharts } from './components/PerformanceCharts';
-import { InsightsPanel } from './components/InsightsPanel';
-import { LoadingState } from './components/LoadingState';
-import { ErrorState } from './components/ErrorState';
+import { PersonaSwitcher } from './PersonaSwitcher';
+import { SearchAndFilter } from './SearchAndFilter';
+import { MetricsDrilldown } from './MetricsDrilldown';
+import { MetricsPanel } from './MetricsPanel';
+import { PerformanceCharts } from './PerformanceCharts';
+import { InsightsPanel } from './InsightsPanel';
+import { LoadingState } from './LoadingState';
+import { ErrorState } from './ErrorState';
 import './Results.css';
-import { filterDataBySearchAndFilters } from './utils/dataUtils';
+import { filterDataBySearchAndFilters } from '../utils/dataUtils';
 
-function Results() {
+export function Results() {
   const { jobId } = useParams();
   const [currentPersona, setCurrentPersona] = useState('developer');
   const [data, setData] = useState(null);

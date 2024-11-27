@@ -1,3 +1,5 @@
+// src/Upload.js
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -10,23 +12,10 @@ function Upload() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.name.endsWith('.har')) {
-      setFile(selectedFile);
-      setError('');
-    } else {
-      setError('Please select a valid HAR file');
-      setFile(null);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return;
-
-    setLoading(true);
     setError('');
+    setLoading(true);
 
     const formData = new FormData();
     formData.append('harFile', file);
@@ -55,9 +44,8 @@ function Upload() {
       <h1>HAR File Analyzer</h1>
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
-          <label htmlFor="persona">Select Your Role:</label>
+          <label>Select Your Role:</label>
           <select 
-            id="persona"
             value={persona} 
             onChange={(e) => setPersona(e.target.value)}
             className="persona-select"
@@ -69,12 +57,11 @@ function Upload() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="harFile">Upload HAR File:</label>
+          <label>Upload HAR File:</label>
           <input
-            id="harFile"
             type="file"
             accept=".har"
-            onChange={handleFileChange}
+            onChange={(e) => setFile(e.target.files[0])}
             className="file-input"
           />
         </div>
@@ -93,4 +80,4 @@ function Upload() {
   );
 }
 
-export default Upload; 
+export default Upload;
