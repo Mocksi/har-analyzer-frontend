@@ -25,6 +25,34 @@ export function Results() {
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 30; // 30 retries = 2.5 minutes with 5s intervals
 
+  const processData = (rawData) => {
+    if (!rawData) return null;
+
+    // Ensure metrics has required structure
+    const metrics = {
+      domains: rawData.metrics?.domains || [],
+      timeseries: rawData.metrics?.timeseries || [],
+      requestsByType: rawData.metrics?.requestsByType || {},
+      primary: rawData.metrics?.primary || {
+        errorRate: 0,
+        totalSize: 0,
+        totalRequests: 0,
+        avgResponseTime: 0
+      },
+      selected: rawData.metrics?.selected || {
+        errorRequests: 0,
+        largestRequests: [],
+        slowestRequests: []
+      },
+      ...rawData.metrics
+    };
+
+    // Ensure insights is an array
+    const insights = Array.isArray(rawData.insights) ? rawData.insights : [];
+
+    return { metrics, insights };
+  };
+
   const fetchResults = async () => {
     try {
       setLoading(true);
@@ -39,9 +67,8 @@ export function Results() {
       }
       
       if (response.data) {
-        const cacheKey = `results-${jobId}-${currentPersona}`;
-        localStorage.setItem(cacheKey, JSON.stringify(response.data));
-        setData(response.data);
+        const processedData = processData(response.data);
+        setData(processedData);
         setError(null);
         return true;
       }

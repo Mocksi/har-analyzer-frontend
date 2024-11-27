@@ -28,78 +28,28 @@ Chart.register(
 );
 
 export function PerformanceCharts({ metrics, persona }) {
-  if (!metrics) return null;
+  if (!metrics) {
+    return <div className="charts-loading">Loading metrics...</div>;
+  }
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: {
-            family: 'Spline Sans Mono, monospace'
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
-        }
-      },
-      x: {
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
-        }
-      }
-    }
-  };
-
-  const statusCodeData = {
-    labels: Object.keys(metrics.statusDistribution || {}),
-    datasets: [{
-      label: 'Status Codes',
-      data: Object.values(metrics.statusDistribution || {}),
-      backgroundColor: [
-        '#4CAF50', // 2xx
-        '#FFC107', // 3xx
-        '#FF9800', // 4xx
-        '#F44336'  // 5xx
-      ]
-    }]
-  };
-
-  const timingData = {
-    labels: (metrics.slowestRequests || [])
-      .map(req => new URL(req.url).pathname.split('/').slice(-1)[0]),
-    datasets: [{
-      label: 'Response Time (ms)',
-      data: (metrics.slowestRequests || []).map(req => req.time),
-      backgroundColor: '#2196F3'
-    }]
-  };
+  const timeseriesData = metrics.timeseries || [];
+  const domains = metrics.domains || [];
+  const requestTypes = metrics.requestsByType || {};
 
   return (
-    <div className="performance-charts">
-      <div className="chart-container">
-        <div className="chart-header">
-          <h3 className="chart-title">Status Code Distribution</h3>
-        </div>
-        <div style={{ height: '300px' }}>
-          <Pie data={statusCodeData} options={chartOptions} />
-        </div>
-      </div>
-
-      <div className="chart-container">
-        <div className="chart-header">
-          <h3 className="chart-title">Slowest Requests</h3>
-        </div>
-        <div style={{ height: '300px' }}>
-          <Bar data={timingData} options={chartOptions} />
-        </div>
+    <div className="charts-container">
+      <div className="chart">
+        <h3>Response Times Over Time</h3>
+        {timeseriesData.length > 0 ? (
+          <TimeSeriesChart 
+            data={timeseriesData.map(point => ({
+              timestamp: point.timestamp,
+              value: point.responseTime || 0
+            }))} 
+          />
+        ) : (
+          <div className="no-data">No timeline data available</div>
+        )}
       </div>
     </div>
   );
