@@ -31,9 +31,7 @@ export function Results() {
       );
       
       if (response.data) {
-        // Store in localStorage for persistence
         localStorage.setItem(`results-${jobId}`, JSON.stringify(response.data));
-        
         setData(response.data);
         setError(null);
         return true;
@@ -41,7 +39,6 @@ export function Results() {
       return false;
     } catch (err) {
       if (err.response?.status === 404) {
-        // Try to get from localStorage
         const cachedData = localStorage.getItem(`results-${jobId}`);
         if (cachedData) {
           setData(JSON.parse(cachedData));
@@ -57,7 +54,6 @@ export function Results() {
   };
 
   useEffect(() => {
-    // Try to load from cache first
     const cachedData = localStorage.getItem(`results-${jobId}`);
     if (cachedData) {
       setData(JSON.parse(cachedData));
@@ -70,6 +66,29 @@ export function Results() {
   if (loading && !data) return <LoadingState />;
   if (error && !data) return <ErrorState error={error} onRetry={fetchResults} />;
   if (!data) return null;
+
+  // Filter and structure the data
+  const filteredData = {
+    metrics: {
+      ...data.metrics,
+      selected: data.metrics?.selected || {},
+      primary: data.metrics?.primary || {},
+      timeseries: data.metrics?.timeseries || [],
+      requestsByType: data.metrics?.requestsByType || {},
+      statusCodes: data.metrics?.statusCodes || {},
+      domains: data.metrics?.domains || []
+    },
+    insights: data.insights,
+    error: data.error
+  };
+
+  // Apply search and filters if needed
+  const filterDataBySearchAndFilters = (data, searchTerm, filters) => {
+    // Add your filtering logic here if needed
+    return data;
+  };
+
+  const filteredAndSearchedData = filterDataBySearchAndFilters(filteredData, searchTerm, activeFilters);
 
   return (
     <div className="results-container">
@@ -86,22 +105,22 @@ export function Results() {
       />
 
       <MetricsPanel 
-        metrics={filteredData.metrics} 
+        metrics={filteredAndSearchedData.metrics} 
       />
       
       <PerformanceCharts 
-        metrics={filteredData.metrics}
+        metrics={filteredAndSearchedData.metrics}
         persona={currentPersona}
       />
       
       <MetricsDrilldown 
-        metric={filteredData.metrics.selected || filteredData.metrics.primary || {}}
-        timeseriesData={filteredData.metrics.timeseries}
+        metric={filteredAndSearchedData.metrics.selected || filteredAndSearchedData.metrics.primary || {}}
+        timeseriesData={filteredAndSearchedData.metrics.timeseries}
       />
       
       <InsightsPanel 
-        insights={filteredData.insights} 
-        error={filteredData.error}
+        insights={filteredAndSearchedData.insights} 
+        error={filteredAndSearchedData.error}
       />
     </div>
   );
