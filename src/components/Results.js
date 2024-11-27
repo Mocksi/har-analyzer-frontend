@@ -23,7 +23,7 @@ export function Results() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 12; // 1 minute maximum (12 * 5 seconds)
+  const MAX_RETRIES = 12;
 
   const fetchResults = async () => {
     try {
@@ -32,19 +32,25 @@ export function Results() {
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
       );
       
-      // If we have actual results (not just processing status)
-      if (response.data && response.data.insights) {
-        setData(response.data);
+      if (response.data) {
+        const metrics = response.data.metrics || {};
+        metrics.selected = metrics.selected || {};
+        metrics.primary = metrics.primary || {};
+        metrics.timeseries = metrics.timeseries || [];
+        
+        setData({
+          ...response.data,
+          metrics
+        });
         setError(null);
-        return true; // Signal to stop polling
+        return true;
       }
       
-      // Still processing
       setRetryCount(prev => prev + 1);
       return false;
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch results');
-      return true; // Signal to stop polling on error
+      return true;
     } finally {
       setLoading(false);
     }
@@ -54,11 +60,9 @@ export function Results() {
     let intervalId;
     
     const startPolling = async () => {
-      // Initial fetch
       const shouldStop = await fetchResults();
       
       if (!shouldStop && retryCount < MAX_RETRIES) {
-        // Start polling only if we need to continue
         intervalId = setInterval(async () => {
           const shouldStop = await fetchResults();
           if (shouldStop || retryCount >= MAX_RETRIES) {
@@ -69,13 +73,7 @@ export function Results() {
     };
 
     startPolling();
-
-    // Cleanup
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
+    return () => intervalId && clearInterval(intervalId);
   }, [jobId, currentPersona]);
 
   if (retryCount >= MAX_RETRIES) {
@@ -86,11 +84,20 @@ export function Results() {
   if (error) return <ErrorState error={error} onRetry={fetchResults} />;
   if (!data || !data.metrics) return null;
 
-  const filteredData = filterDataBySearchAndFilters(data, searchTerm, activeFilters);
+  const filteredData = {
+    metrics: {
+      ...data.metrics,
+      selected: data.metrics.selected || {},
+      primary: data.metrics.primary || {},
+      timeseries: data.metrics.timeseries || []
+    },
+    insights: data.insights,
+    error: data.error
+  };
 
   return (
     <div className="results-container">
-      <PersonaSwitcher 
+      <PersonaSwitcher
         currentPersona={currentPersona}
         onPersonaChange={setCurrentPersona}
       />
@@ -102,7 +109,9 @@ export function Results() {
         onFilterChange={setActiveFilters}
       />
 
-      <MetricsPanel metrics={filteredData.metrics} />
+      <MetricsPanel 
+        metrics={filteredData.metrics} 
+      />
       
       <PerformanceCharts 
         metrics={filteredData.metrics}
@@ -110,8 +119,8 @@ export function Results() {
       />
       
       <MetricsDrilldown 
-        metric={filteredData.metrics?.selected || filteredData.metrics?.primary || {}}
-        timeseriesData={filteredData.metrics?.timeseries || []}
+        metric={filteredData.metrics.selected || filteredData.metrics.primary || {}}
+        timeseriesData={filteredData.metrics.timeseries}
       />
       
       <InsightsPanel 
