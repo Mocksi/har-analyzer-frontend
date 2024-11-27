@@ -22,6 +22,8 @@ export function Results() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 30; // 30 retries = 2.5 minutes with 5s intervals
 
   const fetchResults = async () => {
     try {
@@ -34,9 +36,11 @@ export function Results() {
         localStorage.setItem(`results-${jobId}`, JSON.stringify(response.data));
         setData(response.data);
         setError(null);
-        return true;
+        return true; // Data found, stop polling
       }
-      return false;
+      
+      setRetryCount(prev => prev + 1);
+      return false; // No data yet, continue polling
     } catch (err) {
       if (err.response?.status === 404) {
         const cachedData = localStorage.getItem(`results-${jobId}`);
@@ -45,23 +49,67 @@ export function Results() {
           setError(null);
           return true;
         }
+        // If no cached data and not max retries, continue polling
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          return false;
+        }
       }
       setError(err.response?.data?.error || 'Failed to fetch results');
-      return true;
+      return true; // Stop polling on other errors
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const cachedData = localStorage.getItem(`results-${jobId}`);
-    if (cachedData) {
-      setData(JSON.parse(cachedData));
-      setLoading(false);
-    }
+    let intervalId;
     
-    fetchResults();
+    const startPolling = async () => {
+      // Try to load from cache first
+      const cachedData = localStorage.getItem(`results-${jobId}`);
+      if (cachedData) {
+        setData(JSON.parse(cachedData));
+        setLoading(false);
+      }
+
+      // Start polling
+      const shouldStop = await fetchResults();
+      
+      if (!shouldStop && retryCount < MAX_RETRIES) {
+        intervalId = setInterval(async () => {
+          const shouldStop = await fetchResults();
+          if (shouldStop || retryCount >= MAX_RETRIES) {
+            clearInterval(intervalId);
+          }
+        }, 5000); // Poll every 5 seconds
+      }
+    };
+
+    startPolling();
+    
+    // Cleanup
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [jobId, currentPersona]);
+
+  // Show timeout error if max retries reached
+  if (retryCount >= MAX_RETRIES && !data) {
+    return (
+      <ErrorState 
+        error={{ 
+          message: 'Analysis is taking longer than expected. Please try refreshing the page.' 
+        }} 
+        onRetry={() => {
+          setRetryCount(0);
+          fetchResults();
+        }}
+      />
+    );
+  }
 
   if (loading && !data) return <LoadingState />;
   if (error && !data) return <ErrorState error={error} onRetry={fetchResults} />;
