@@ -11,58 +11,97 @@ import {
 import './PerformanceCharts.css';
 
 function TimeSeriesChart({ data }) {
-  // Add defensive check for data
-  if (!Array.isArray(data) || data.length === 0) {
-    return <div className="no-data">No timeline data available</div>;
-  }
+  try {
+    // More thorough defensive checks
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      console.log('Invalid or empty data:', data);
+      return <div className="no-data">No timeline data available</div>;
+    }
 
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis 
-          dataKey="timestamp"
-          tickFormatter={(timestamp) => {
-            try {
-              return new Date(timestamp).toLocaleTimeString();
-            } catch (e) {
-              return 'Invalid time';
-            }
-          }}
-        />
-        <YAxis />
-        <RechartsTooltip
-          labelFormatter={(timestamp) => {
-            try {
-              return new Date(timestamp).toLocaleString();
-            } catch (e) {
-              return 'Invalid time';
-            }
-          }}
-          formatter={(value) => `${Number(value).toFixed(2)}ms`}
-        />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke="#8884d8" 
-          activeDot={{ r: 8 }} 
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
+    // Validate data structure before rendering
+    const validData = data.filter(point => 
+      point && 
+      typeof point.timestamp === 'number' && 
+      !isNaN(point.timestamp) &&
+      typeof point.value === 'number' &&
+      !isNaN(point.value)
+    );
+
+    if (validData.length === 0) {
+      console.log('No valid data points found:', data);
+      return <div className="no-data">No valid data points available</div>;
+    }
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart 
+          data={validData} 
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="timestamp"
+            tickFormatter={(timestamp) => {
+              try {
+                return new Date(timestamp).toLocaleTimeString();
+              } catch (e) {
+                return 'Invalid time';
+              }
+            }}
+          />
+          <YAxis />
+          <RechartsTooltip
+            labelFormatter={(timestamp) => {
+              try {
+                return new Date(timestamp).toLocaleString();
+              } catch (e) {
+                return 'Invalid time';
+              }
+            }}
+            formatter={(value) => `${Number(value).toFixed(2)}ms`}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="value" 
+            stroke="#8884d8" 
+            activeDot={{ r: 8 }} 
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  } catch (error) {
+    console.error('Error rendering chart:', error);
+    return <div className="no-data">Error rendering chart</div>;
+  }
 }
 
 export function PerformanceCharts({ metrics, persona }) {
+  // Add defensive check for metrics
   if (!metrics) {
+    console.log('No metrics provided');
     return <div className="charts-loading">Loading metrics...</div>;
   }
 
-  // Ensure timeseries exists and is an array
-  const timeseriesData = Array.isArray(metrics.timeseries) ? metrics.timeseries : [];
-  
-  // Transform and validate data - only include points with valid timestamps and value
+  // Ensure timeseries exists and is an array with explicit logging
+  const timeseriesData = metrics.timeseries;
+  console.log('Raw timeseries data:', timeseriesData);
+
+  if (!Array.isArray(timeseriesData)) {
+    console.log('Timeseries is not an array:', timeseriesData);
+    return <div className="no-data">Invalid timeline data format</div>;
+  }
+
+  // Transform and validate data with explicit logging
   const chartData = timeseriesData
-    .filter(point => point && typeof point.timestamp === 'number' && typeof point.value === 'number')
+    .filter(point => {
+      const isValid = point && 
+        typeof point.timestamp === 'number' && 
+        typeof point.value === 'number';
+      if (!isValid) {
+        console.log('Invalid data point:', point);
+      }
+      return isValid;
+    })
     .map(point => ({
       timestamp: point.timestamp,
       value: point.value

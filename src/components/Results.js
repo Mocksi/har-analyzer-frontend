@@ -27,32 +27,34 @@ export function Results() {
 
   const processData = (rawData) => {
     if (!rawData || !rawData.metrics) {
-      console.log('Invalid raw data:', rawData); // Debug log
+      console.log('Invalid raw data:', rawData);
       return null;
     }
 
-    // Ensure metrics has required structure
+    // Ensure metrics has required structure with explicit defaults
     const metrics = {
-      domains: rawData.metrics?.domains || [],
-      timeseries: Array.isArray(rawData.metrics.timeseries) 
-        ? rawData.metrics.timeseries 
-        : [],
-      requestsByType: rawData.metrics?.requestsByType || {},
-      primary: rawData.metrics?.primary || {
+      domains: [],
+      timeseries: [],
+      requestsByType: {},
+      primary: {
         errorRate: 0,
         totalSize: 0,
         totalRequests: 0,
         avgResponseTime: 0
       },
-      selected: rawData.metrics?.selected || {
+      selected: {
         errorRequests: 0,
         largestRequests: [],
         slowestRequests: []
       },
-      ...rawData.metrics
+      ...rawData.metrics,
+      // Ensure timeseries is always an array
+      timeseries: Array.isArray(rawData.metrics?.timeseries) 
+        ? rawData.metrics.timeseries 
+        : []
     };
 
-    console.log('Processed metrics:', metrics); // Debug log
+    console.log('Processed metrics:', metrics);
 
     return {
       metrics,
