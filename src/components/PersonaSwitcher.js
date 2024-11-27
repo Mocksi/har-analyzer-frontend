@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import './PersonaSwitcher.css';
 
 const PERSONAS = [
@@ -24,4 +25,9 @@ export function PersonaSwitcher({ currentPersona, onPersonaChange }) {
       ))}
     </div>
   );
-} 
+}
+
+PersonaSwitcher.propTypes = {
+  currentPersona: PropTypes.string.isRequired,
+  onPersonaChange: PropTypes.func.isRequired
+}; 

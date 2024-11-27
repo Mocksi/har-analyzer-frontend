@@ -2,17 +2,20 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Upload from './Upload';
-import Results from './Results';
+import Upload from './components/Upload';
+import Results from './components/Results';
+import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Upload />} />
-        <Route path="/results/:jobId" element={<Results />} />
-      </Routes>
-    </Router>
+    <div className="app">
+      <Router>
+        <Routes>
+          <Route path="/" element={<Upload />} />
+          <Route path="/results/:jobId" element={<Results />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

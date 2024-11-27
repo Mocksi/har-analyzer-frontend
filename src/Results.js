@@ -1,7 +1,8 @@
 // src/Results.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import { PersonaSwitcher } from './components/PersonaSwitcher';
 import { SearchAndFilter } from './components/SearchAndFilter';
 import { MetricsDrilldown } from './components/MetricsDrilldown';
@@ -10,71 +11,78 @@ import { PerformanceCharts } from './components/PerformanceCharts';
 import { InsightsPanel } from './components/InsightsPanel';
 import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
-import { useDataRefresh } from './hooks/useDataRefresh';
-import { fetchAnalysisResults, filterDataBySearchAndFilters } from './utils/dataUtils';
 import './Results.css';
+import { filterDataBySearchAndFilters } from './utils/dataUtils';
 
 function Results() {
   const { jobId } = useParams();
   const [currentPersona, setCurrentPersona] = useState('developer');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
-  const [selectedMetric, setSelectedMetric] = useState(null);
 
-  const { data, loading, error, refresh } = useDataRefresh(
-    () => fetchAnalysisResults(jobId, currentPersona),
-    30000
-  );
+  const fetchResults = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
+      );
+      setData(response.data);
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch results');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filteredData = React.useMemo(() => {
-    if (!data) return null;
-    
-    return filterDataBySearchAndFilters(data, searchTerm, activeFilters);
-  }, [data, searchTerm, activeFilters]);
+  useEffect(() => {
+    fetchResults();
+    const interval = setInterval(async () => {
+      try {
+        await fetchResults();
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to fetch results');
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [jobId, currentPersona]);
 
   if (loading) return <LoadingState />;
-  if (error) return <ErrorState error={error} onRetry={refresh} />;
+  if (error) return <ErrorState error={error} onRetry={fetchResults} />;
+  if (!data) return null;
+
+  const filteredData = filterDataBySearchAndFilters(data, searchTerm, activeFilters);
 
   return (
     <div className="results-container">
-      <header className="results-header">
-        <h1>Analysis Results</h1>
-        <PersonaSwitcher 
-          currentPersona={currentPersona}
-          onPersonaChange={setCurrentPersona}
-        />
-      </header>
-
+      <PersonaSwitcher 
+        currentPersona={currentPersona}
+        onPersonaChange={setCurrentPersona}
+      />
+      
       <SearchAndFilter
-        onSearch={setSearchTerm}
-        onFilter={setActiveFilters}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        activeFilters={activeFilters}
+        onFilterChange={setActiveFilters}
       />
 
-      <div className="results-content">
-        <MetricsPanel 
-          metrics={filteredData?.metrics}
-          persona={currentPersona}
-          onMetricSelect={setSelectedMetric}
-        />
-
-        {selectedMetric && (
-          <MetricsDrilldown
-            metric={selectedMetric}
-            timeseriesData={data.timeseriesData[selectedMetric.id]}
-            onClose={() => setSelectedMetric(null)}
-          />
-        )}
-
-        <PerformanceCharts 
-          data={filteredData?.metrics}
-          persona={currentPersona}
-        />
-
-        <InsightsPanel 
-          insights={filteredData?.insights}
-          persona={currentPersona}
-        />
-      </div>
+      <MetricsPanel metrics={filteredData.metrics} />
+      
+      <PerformanceCharts 
+        metrics={filteredData.metrics}
+        persona={currentPersona}
+      />
+      
+      <MetricsDrilldown 
+        metric={filteredData.metrics.selected || filteredData.metrics.primary}
+        timeseriesData={filteredData.metrics.timeseries}
+      />
+      
+      <InsightsPanel insights={filteredData.insights} />
     </div>
   );
 }

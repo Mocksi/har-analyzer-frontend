@@ -1,6 +1,8 @@
 import React from 'react';
-import { Bar, Pie, Line, Chart as ChartJS } from 'react-chartjs-2';
+import PropTypes from 'prop-types';
+import { Bar, Pie } from 'react-chartjs-2';
 import {
+  Chart,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -11,8 +13,9 @@ import {
   Legend,
   ArcElement
 } from 'chart.js';
+import './PerformanceCharts.css';
 
-ChartJS.register(
+Chart.register(
   CategoryScale,
   LinearScale,
   BarElement,
@@ -24,33 +27,42 @@ ChartJS.register(
   ArcElement
 );
 
-const darkTheme = {
-  backgroundColor: 'var(--black)',
-  borderColor: 'var(--dark-grey)',
-  color: 'var(--light-grey)',
-  font: {
-    family: 'Spline Sans Mono, monospace'
-  },
-  grid: {
-    color: 'var(--dark-grey)',
-    borderColor: 'var(--dark-grey)',
-    borderDash: [2, 2]
-  },
-  point: {
-    backgroundColor: 'var(--primary-fixed)',
-    borderColor: 'var(--black)'
-  }
-};
+function PerformanceCharts({ metrics, persona }) {
+  if (!metrics) return null;
 
-ChartJS.defaults.color = 'var(--light-grey)';
-ChartJS.defaults.font.family = 'Spline Sans Mono, monospace';
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: {
+            family: 'Spline Sans Mono, monospace'
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        }
+      },
+      x: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        }
+      }
+    }
+  };
 
-export function PerformanceCharts({ metrics }) {
   const statusCodeData = {
-    labels: Object.keys(metrics.api.statusDistribution),
+    labels: Object.keys(metrics.statusDistribution || {}),
     datasets: [{
       label: 'Status Codes',
-      data: Object.values(metrics.api.statusDistribution),
+      data: Object.values(metrics.statusDistribution || {}),
       backgroundColor: [
         '#4CAF50', // 2xx
         '#FFC107', // 3xx
@@ -61,61 +73,47 @@ export function PerformanceCharts({ metrics }) {
   };
 
   const timingData = {
-    labels: metrics.performance.slowRequests.map(req => new URL(req.url).pathname),
+    labels: (metrics.slowestRequests || [])
+      .map(req => new URL(req.url).pathname.split('/').slice(-1)[0]),
     datasets: [{
       label: 'Response Time (ms)',
-      data: metrics.performance.slowRequests.map(req => req.time),
+      data: (metrics.slowestRequests || []).map(req => req.time),
       backgroundColor: '#2196F3'
     }]
   };
 
-  const chartOptions = {
-    plugins: {
-      legend: {
-        labels: {
-          color: 'var(--light-grey)',
-          font: {
-            family: 'Spline Sans Mono, sans-serif'
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          color: 'var(--dark-grey)'
-        },
-        ticks: {
-          color: 'var(--light-grey)'
-        }
-      },
-      y: {
-        grid: {
-          color: 'var(--dark-grey)'
-        },
-        ticks: {
-          color: 'var(--light-grey)'
-        }
-      }
-    },
-    animation: {
-      duration: 750,
-      easing: 'easeInOutQuart'
-    }
-  };
-
   return (
-    <div className="charts-container">
-      <div className="chart-wrapper">
-        <h3>Status Code Distribution</h3>
-        <Pie data={statusCodeData} options={chartOptions} />
+    <div className="performance-charts">
+      <div className="chart-container">
+        <div className="chart-header">
+          <h3 className="chart-title">Status Code Distribution</h3>
+        </div>
+        <div style={{ height: '300px' }}>
+          <Pie data={statusCodeData} options={chartOptions} />
+        </div>
       </div>
-      <div className="chart-wrapper">
-        <h3>Slowest Requests</h3>
-        <Bar data={timingData} options={chartOptions} />
+
+      <div className="chart-container">
+        <div className="chart-header">
+          <h3 className="chart-title">Slowest Requests</h3>
+        </div>
+        <div style={{ height: '300px' }}>
+          <Bar data={timingData} options={chartOptions} />
+        </div>
       </div>
     </div>
   );
 }
+
+PerformanceCharts.propTypes = {
+  metrics: PropTypes.shape({
+    statusDistribution: PropTypes.object,
+    slowestRequests: PropTypes.arrayOf(PropTypes.shape({
+      url: PropTypes.string,
+      time: PropTypes.number
+    }))
+  }),
+  persona: PropTypes.string.isRequired
+};
 
 export default PerformanceCharts; 

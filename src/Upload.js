@@ -1,53 +1,43 @@
 // src/Upload.js
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Upload.css';
 
 function Upload() {
   const [file, setFile] = useState(null);
-  const [persona, setPersona] = useState('Developer');
-  const [jobId, setJobId] = useState(null);
+  const [persona, setPersona] = useState('developer');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      setError('Please select a HAR file');
-      return;
-    }
-
+    setError('');
     setLoading(true);
-    setError(null);
 
     const formData = new FormData();
-    formData.append('harfile', file);
+    formData.append('harFile', file);
     formData.append('persona', persona);
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/upload`,
-        formData
+        `${process.env.REACT_APP_API_URL}/analyze`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
-      setJobId(response.data.jobId);
-    } catch (error) {
-      setError(error.response?.data?.message || 'Error uploading file');
-      console.error('Error uploading file:', error);
+      navigate(`/results/${response.data.jobId}`);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to upload file');
     } finally {
       setLoading(false);
     }
   };
-
-  const personas = [
-    { value: 'Developer', description: 'Focus on performance optimization and debugging' },
-    { value: 'QA Professional', description: 'Emphasis on testing and quality assurance' },
-    { value: 'Sales Engineer', description: 'Business-focused insights and demonstrations' }
-  ];
-
-  if (jobId) {
-    window.location.href = `/results/${jobId}`;
-  }
 
   return (
     <div className="upload-container">
@@ -60,13 +50,10 @@ function Upload() {
             onChange={(e) => setPersona(e.target.value)}
             className="persona-select"
           >
-            {personas.map(p => (
-              <option key={p.value} value={p.value}>{p.value}</option>
-            ))}
+            <option value="developer">Developer</option>
+            <option value="performance">Performance Engineer</option>
+            <option value="security">Security Analyst</option>
           </select>
-          <p className="persona-description">
-            {personas.find(p => p.value === persona)?.description}
-          </p>
         </div>
 
         <div className="form-group">

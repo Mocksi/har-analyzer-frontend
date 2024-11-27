@@ -14,6 +14,14 @@ function PerformanceMetrics({ metrics }) {
     return `${(ms/1000).toFixed(2)}s`;
   };
 
+  const getPathname = (url) => {
+    try {
+      return new URL(url).pathname;
+    } catch (e) {
+      return url;
+    }
+  };
+
   return (
     <div className="metrics-container">
       <div className="metric-card">
@@ -31,7 +39,7 @@ function PerformanceMetrics({ metrics }) {
         <ul>
           {metrics.slowestRequests.map((req, index) => (
             <li key={index}>
-              {new URL(req.url).pathname} - {formatTime(req.time)}
+              {getPathname(req.url)} - {formatTime(req.time)}
             </li>
           ))}
         </ul>
@@ -42,7 +50,7 @@ function PerformanceMetrics({ metrics }) {
         <ul>
           {metrics.largestRequests.map((req, index) => (
             <li key={index}>
-              {new URL(req.url).pathname} - {formatSize(req.size)}
+              {getPathname(req.url)} - {formatSize(req.size)}
             </li>
           ))}
         </ul>
@@ -54,7 +62,7 @@ function PerformanceMetrics({ metrics }) {
           <ul>
             {metrics.errors.map((error, index) => (
               <li key={index}>
-                {error.status} {error.statusText} - {new URL(error.url).pathname}
+                {error.status} {error.statusText} - {getPathname(error.url)}
               </li>
             ))}
           </ul>

@@ -1,6 +1,27 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import './MetricsDrilldown.css';
+import { ErrorState } from './ErrorState';
+import { LoadingState } from './LoadingState';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorState error={{ message: 'Something went wrong' }} />;
+    }
+    return this.props.children;
+  }
+}
 
 export function MetricsDrilldown({ metric, timeseriesData }) {
   const [timeRange, setTimeRange] = useState('1h');
@@ -36,6 +57,14 @@ export function MetricsDrilldown({ metric, timeseriesData }) {
       }
     }
   };
+
+  if (!metric || !timeseriesData) {
+    return (
+      <div className="metric-drilldown loading">
+        <LoadingState />
+      </div>
+    );
+  }
 
   return (
     <div className="metric-drilldown">
@@ -91,4 +120,17 @@ export function MetricsDrilldown({ metric, timeseriesData }) {
       </div>
     </div>
   );
-} 
+}
+
+MetricsDrilldown.propTypes = {
+  metric: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    currentValue: PropTypes.number,
+    trend: PropTypes.string,
+    threshold: PropTypes.number
+  }),
+  timeseriesData: PropTypes.shape({
+    labels: PropTypes.arrayOf(PropTypes.string),
+    datasets: PropTypes.arrayOf(PropTypes.object)
+  })
+}; 

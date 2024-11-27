@@ -1,17 +1,35 @@
 import axios from 'axios';
 
 export async function fetchAnalysisResults(jobId, persona) {
-  const response = await axios.get(
-    `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${persona}`
-  );
-  return response.data;
+  try {
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${persona}`
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error('Analysis not found');
+    }
+    throw new Error('Failed to fetch analysis results');
+  }
 }
 
 export function filterDataBySearchAndFilters(data, searchTerm, activeFilters) {
-  if (!searchTerm && (!activeFilters || activeFilters.length === 0)) {
-    return data;
+  if (!data) return null;
+  
+  let filteredData = { ...data };
+  
+  if (searchTerm || activeFilters.length > 0) {
+    if (filteredData.insights) {
+      filteredData.insights = filteredData.insights.filter(insight => {
+        const matchesSearch = !searchTerm || 
+          insight.message.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilters = !activeFilters.length || 
+          activeFilters.includes(insight.severity);
+        return matchesSearch && matchesFilters;
+      });
+    }
   }
-
-  // Implement your filtering logic here
-  return data;
+  
+  return filteredData;
 } 

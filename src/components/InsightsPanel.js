@@ -1,84 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import './InsightsPanel.css';
 
-export function InsightsPanel({ insights }) {
-  const [filteredInsights, setFilteredInsights] = useState(insights);
+function InsightsPanel({ insights }) {
   const [severityFilter, setSeverityFilter] = useState('all');
-  const [showExpired, setShowExpired] = useState(false);
-
-  useEffect(() => {
-    const filtered = insights.filter(insight => {
-      const isExpired = new Date(insight.expires_at) < new Date();
-      if (!showExpired && isExpired) return false;
-      if (severityFilter !== 'all' && insight.severity !== severityFilter) return false;
-      return true;
-    });
-    setFilteredInsights(filtered);
-  }, [insights, severityFilter, showExpired]);
-
-  const renderFilterControls = () => (
-    <div className="insights-filters">
-      <div className="filter-group">
-        <label>Severity:</label>
-        <select 
-          value={severityFilter} 
-          onChange={(e) => setSeverityFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">All</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
+  
+  if (!insights || !insights.length) {
+    return (
+      <div className="insights-panel empty">
+        <p>No insights available yet. Analysis may still be in progress.</p>
       </div>
-      <div className="filter-group">
-        <label>
-          <input
-            type="checkbox"
-            checked={showExpired}
-            onChange={(e) => setShowExpired(e.target.checked)}
-          />
-          Show Expired
-        </label>
-      </div>
-    </div>
-  );
+    );
+  }
+
+  const filteredInsights = severityFilter === 'all'
+    ? insights
+    : insights.filter(insight => insight.severity === severityFilter);
+
+  const severityCounts = insights.reduce((acc, insight) => {
+    acc[insight.severity] = (acc[insight.severity] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="insights-panel">
       <div className="insights-header">
-        <h3>Key Insights</h3>
-        {renderFilterControls()}
-      </div>
-      
-      {filteredInsights.length === 0 ? (
-        <div className="no-insights">
-          No insights match your current filters
+        <h3>Performance Insights</h3>
+        <div className="severity-filters">
+          <button
+            className={`filter-btn ${severityFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setSeverityFilter('all')}
+          >
+            All ({insights.length})
+          </button>
+          {Object.entries(severityCounts).map(([severity, count]) => (
+            <button
+              key={severity}
+              className={`filter-btn ${severity} ${severityFilter === severity ? 'active' : ''}`}
+              onClick={() => setSeverityFilter(severity)}
+            >
+              {severity} ({count})
+            </button>
+          ))}
         </div>
-      ) : (
-        filteredInsights.map((insight, index) => {
+      </div>
+
+      <div className="insights-grid">
+        {filteredInsights.map((insight, index) => {
           const isExpired = new Date(insight.expires_at) < new Date();
           
           return (
-            <div key={index} className={`insight-card ${isExpired ? 'expired' : ''}`}>
+            <div 
+              key={index} 
+              className={`insight-card ${insight.severity} ${isExpired ? 'expired' : ''}`}
+            >
               <div className="insight-header">
-                <span className={`insight-severity ${insight.severity}`}>
+                <span className="severity-badge">
                   {insight.severity.toUpperCase()}
                 </span>
-                <span className="insight-expiry">
-                  {isExpired ? 'Expired' : `Expires ${formatDistanceToNow(new Date(insight.expires_at))}`}
+                <span className="expiry-time">
+                  {isExpired 
+                    ? 'Expired'
+                    : `Expires ${formatDistanceToNow(new Date(insight.expires_at))}`
+                  }
                 </span>
               </div>
               <p className="insight-message">{insight.message}</p>
               {insight.recommendation && (
-                <p className="insight-recommendation">
-                  Recommendation: {insight.recommendation}
-                </p>
+                <div className="recommendation">
+                  <strong>Recommendation:</strong>
+                  <p>{insight.recommendation}</p>
+                </div>
               )}
             </div>
           );
-        })
-      )}
+        })}
+      </div>
     </div>
   );
-} 
+}
+
+export default InsightsPanel; 
