@@ -68,4 +68,53 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
+}
+
+.insight-card {
+  background: var(--surface-background);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid transparent;
+}
+
+.insight-card.critical {
+  border-left-color: var(--error-color);
+}
+
+.insight-card.warning {
+  border-left-color: var(--warning-color);
+}
+
+.insight-card.info {
+  border-left-color: var(--info-color);
+}
+
+.insight-header {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.severity-badge,
+.category-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.insight-title {
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+}
+
+.insight-details ul,
+.insight-recommendations ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.insight-recommendations h4 {
+  margin: 1rem 0 0.5rem;
+  color: var(--text-secondary);
 } 

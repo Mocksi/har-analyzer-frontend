@@ -35,19 +35,18 @@ export function Results() {
       if (response.status === 202) {
         console.log('Job still processing...');
         setRetryCount(prev => prev + 1);
-        return false; // Continue polling
+        return false;
       }
       
       if (response.data) {
-        console.log('Results received');
-        localStorage.setItem(`results-${jobId}`, JSON.stringify(response.data));
+        const cacheKey = `results-${jobId}-${currentPersona}`;
+        localStorage.setItem(cacheKey, JSON.stringify(response.data));
         setData(response.data);
         setError(null);
-        return true; // Stop polling
+        return true;
       }
       
-      setRetryCount(prev => prev + 1);
-      return false; // No data yet, continue polling
+      return false;
     } catch (err) {
       console.log('Error fetching results:', err.response?.status);
       if (err.response?.status === 404) {
@@ -72,12 +71,44 @@ export function Results() {
     }
   };
 
+  const handlePersonaChange = async (newPersona) => {
+    setCurrentPersona(newPersona);
+    setLoading(true);
+    setRetryCount(0);
+    
+    // Clear existing data to show loading state
+    setData(null);
+    
+    // Remove cached data for this job-persona combination
+    localStorage.removeItem(`results-${jobId}-${newPersona}`);
+    
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${newPersona}`
+      );
+      
+      if (response.data) {
+        localStorage.setItem(`results-${jobId}-${newPersona}`, JSON.stringify(response.data));
+        setData(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching results for new persona:', error);
+      setError(error.response?.data?.error || 'Failed to fetch results');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update cache key to include persona
+  const getCacheKey = () => `results-${jobId}-${currentPersona}`;
+
+  // Update useEffect to use persona-specific cache
   useEffect(() => {
     let intervalId;
     
     const startPolling = async () => {
       // Try to load from cache first
-      const cachedData = localStorage.getItem(`results-${jobId}`);
+      const cachedData = localStorage.getItem(getCacheKey());
       if (cachedData) {
         setData(JSON.parse(cachedData));
         setLoading(false);
@@ -92,19 +123,18 @@ export function Results() {
           if (shouldStop || retryCount >= MAX_RETRIES) {
             clearInterval(intervalId);
           }
-        }, 5000); // Poll every 5 seconds
+        }, 5000);
       }
     };
 
     startPolling();
     
-    // Cleanup
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [jobId, currentPersona]);
+  }, [jobId, currentPersona]); // currentPersona dependency triggers reload
 
   // Show timeout error if max retries reached
   if (retryCount >= MAX_RETRIES && !data) {
@@ -152,7 +182,7 @@ export function Results() {
     <div className="results-container">
       <PersonaSwitcher
         currentPersona={currentPersona}
-        onPersonaChange={setCurrentPersona}
+        onPersonaChange={handlePersonaChange}
       />
       
       <SearchAndFilter

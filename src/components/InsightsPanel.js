@@ -212,14 +212,30 @@ function InsightCard({ insight }) {
   return (
     <div className={`insight-card ${insight.severity}`}>
       <div className="insight-header">
-        <span className="severity-badge">{insight.severity.toUpperCase()}</span>
+        <span className="severity-badge">{insight.severity}</span>
         <span className="category-badge">{insight.category}</span>
       </div>
-      <p className="insight-message">{insight.message}</p>
-      {insight.recommendation && (
-        <div className="recommendation">
-          <strong>Recommendation:</strong>
-          <p>{insight.recommendation}</p>
+      
+      <h3 className="insight-title">{insight.message}</h3>
+      
+      {insight.details && insight.details.length > 0 && (
+        <div className="insight-details">
+          <ul>
+            {insight.details.map((detail, index) => (
+              <li key={index}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {insight.recommendations && insight.recommendations.length > 0 && (
+        <div className="insight-recommendations">
+          <h4>Recommendations:</h4>
+          <ul>
+            {insight.recommendations.map((rec, index) => (
+              <li key={index}>{rec}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
