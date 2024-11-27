@@ -71,7 +71,7 @@ function TimeSeriesChart({ data }) {
 }
 
 export function PerformanceCharts({ metrics }) {
-  const { timeseries } = metrics;
+  const { timeseries, primary } = metrics;
 
   if (timeseries.length === 1) {
     const { timestamp, value } = timeseries[0];
@@ -79,7 +79,11 @@ export function PerformanceCharts({ metrics }) {
       <div className="performance-metrics">
         <h3>Response Time</h3>
         <p>{value.toFixed(2)} ms at {new Date(timestamp).toLocaleTimeString()}</p>
-        {/* Add benchmark comparison here if applicable */}
+        <h3>Average Response Time</h3>
+        <p>{primary.avgResponseTime.toFixed(2)} ms</p>
+        <h3>Total Requests</h3>
+        <p>{primary.totalRequests}</p>
+        {/* Add more metrics as needed */}
       </div>
     );
   }
