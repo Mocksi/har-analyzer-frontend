@@ -1,16 +1,6 @@
+import React from 'react';
 import { PERSONA_CONFIGS } from '../config/personas';
-
-const PERSONA_CONFIGS = {
-  developer: {
-    insights: ['technical', 'performance']
-  },
-  qa: {
-    insights: ['testing', 'reliability']
-  },
-  salesEngineer: {
-    insights: ['business', 'customer']
-  }
-};
+import './InsightsPanel.css';
 
 export function InsightsPanel({ metrics, insights, persona }) {
   if (!insights) return <div className="insights-panel">No insights available</div>;
