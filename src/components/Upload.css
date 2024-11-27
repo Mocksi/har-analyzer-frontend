@@ -72,14 +72,14 @@ kbd {
 }
 
 .file-drop-zone {
-  border: 2px dashed #ccc;
+  border: 2px dashed #4facfe;
   border-radius: 4px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: #f8f9fa;
+  background: #222222;
   min-height: 150px;
   display: flex;
   align-items: center;
@@ -87,8 +87,8 @@ kbd {
 }
 
 .file-drop-zone.dragging {
-  border-color: #007bff;
-  background: #e7f1ff;
+  border-color: #00f2fe;
+  background: rgba(79, 172, 254, 0.1);
 }
 
 .file-input {
@@ -109,11 +109,11 @@ kbd {
 
 .upload-text {
   display: block;
-  color: #666;
+  color: #ffffff;
 }
 
 .file-name {
-  color: #007bff;
+  color: #4facfe;
   font-weight: 500;
   word-break: break-all;
 }
