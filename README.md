@@ -1,70 +1,86 @@
-# Getting Started with Create React App
+HAR Analyzer Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React-based frontend for analyzing HAR (HTTP Archive) files with AI-powered insights.
 
-## Available Scripts
+## Quick Start
 
-In the project directory, you can run:
+# Install dependencies
+npm install
 
-### `npm start`
+# Start development server
+npm start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+# Build for production
+npm run build
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Configuration
 
-### `npm test`
+Create a `.env` file in the root directory:
+REACT_APP_API_URL=http://localhost:3001
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+For production, update the API URL accordingly.
 
-### `npm run build`
+## Project Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+src/
+- components/: React components
+- utils/: Helper functions
+- hooks/: Custom React hooks
+- App.js: Main app component
+- index.js: Entry point
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Key Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- HAR file upload and validation
+- Real-time analysis progress tracking
+- Interactive performance visualizations
+- AI-powered insights display
+- Persona-based result filtering
 
-### `npm run eject`
+## Development
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Prerequisites
+- Node.js 18+
+- npm 8+
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Running Tests
+npm test
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Code Style
+- Uses ESLint with Airbnb config
+- Prettier for formatting
+- Run `npm run lint` to check style
+- Run `npm run format` to format code
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## API Integration
 
-## Learn More
+The frontend communicates with the backend through:
+- `/analyze` - POST endpoint for HAR file upload
+- `/results/:jobId` - GET endpoint for analysis results
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Dependencies
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Key libraries:
+- React 18
+- React Router 6
+- Axios
+- Chart.js
+- date-fns
 
-### Code Splitting
+## Error Handling
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- Network errors show user-friendly messages
+- File size validation on upload
+- Graceful degradation for missing features
 
-### Analyzing the Bundle Size
+## Browser Support
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- Chrome/Edge 90+
+- Firefox 90+
+- Safari 14+
 
-### Making a Progressive Web App
+## Future Improvements
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [ ] Add offline support
+- [ ] Implement result caching
+- [ ] Add batch file processing

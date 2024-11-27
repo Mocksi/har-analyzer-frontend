@@ -14,6 +14,27 @@ import ErrorState from './ErrorState';
 import './Results.css';
 import { filterDataBySearchAndFilters } from '../utils/dataUtils';
 
+const PERSONA_CONFIGS = {
+  developer: {
+    metrics: ['responseTime', 'bundleSize', 'codeOptimization'],
+    insights: ['technical', 'performance'],
+    charts: ['timeseriesDetailed', 'resourceBreakdown'],
+    actionItems: ['codeLevel', 'optimization']
+  },
+  qa: {
+    metrics: ['errorRates', 'userFlows', 'browserCompatibility'],
+    insights: ['testing', 'reliability'],
+    charts: ['errorPatterns', 'userJourneys'],
+    actionItems: ['testCases', 'regressionPoints']
+  },
+  salesEngineer: {
+    metrics: ['businessImpact', 'userExperience', 'competitiveEdge'],
+    insights: ['business', 'customer'],
+    charts: ['highLevel', 'comparison'],
+    actionItems: ['roi', 'customerValue']
+  }
+};
+
 export function Results() {
   const { jobId } = useParams();
   const [currentPersona, setCurrentPersona] = useState('developer');
@@ -24,6 +45,13 @@ export function Results() {
   const [activeFilters, setActiveFilters] = useState([]);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 30; // 30 retries = 2.5 minutes with 5s intervals
+  const [activeCategory, setActiveCategory] = useState('performance');
+  const [siteInfo, setSiteInfo] = useState({
+    domainName: '',
+    timestamp: '',
+    environment: '',
+    reportId: ''
+  });
 
   const processData = (rawData) => {
     if (!rawData || !rawData.metrics) {
@@ -31,9 +59,24 @@ export function Results() {
       return null;
     }
 
+    // Extract site information
+    const primaryDomain = rawData.metrics.domains?.[0] || 'Unknown Domain';
+    const timestamp = new Date().toLocaleString();
+    
+    setSiteInfo({
+      domainName: primaryDomain,
+      timestamp: timestamp,
+      environment: rawData.metrics.environment || 'Production',
+      reportId: `HAR-${jobId}-${timestamp.split(',')[0].replace(/\//g, '')}`
+    });
+
     // Ensure metrics has required structure with explicit defaults
     const metrics = {
-      domains: [],
+      domains: Array.isArray(rawData.metrics.domains) 
+        ? rawData.metrics.domains 
+        : (rawData.metrics.domains instanceof Set 
+          ? Array.from(rawData.metrics.domains) 
+          : []),
       timeseries: [],
       requestsByType: {},
       primary: {
@@ -201,40 +244,199 @@ export function Results() {
     return data;
   };
 
-  const filteredAndSearchedData = filterDataBySearchAndFilters(filteredData, searchTerm, activeFilters);
+  const filterByCategory = (data, category) => {
+    switch(category.toLowerCase()) {
+      case 'performance':
+        return {
+          ...data,
+          insights: data.insights.filter(insight => 
+            insight.category.toLowerCase().includes('performance') ||
+            insight.category.toLowerCase().includes('speed') ||
+            insight.category.toLowerCase().includes('timing')
+          ),
+          metrics: {
+            ...data.metrics,
+            selected: {
+              ...data.metrics.selected,
+              // Prioritize performance-related metrics
+              slowestRequests: data.metrics.selected.slowestRequests || [],
+              avgResponseTime: data.metrics.primary.avgResponseTime
+            }
+          }
+        };
+      
+      case 'security':
+        return {
+          ...data,
+          insights: data.insights.filter(insight =>
+            insight.category.toLowerCase().includes('security') ||
+            insight.category.toLowerCase().includes('vulnerability') ||
+            insight.category.toLowerCase().includes('risk')
+          ),
+          metrics: {
+            ...data.metrics,
+            selected: {
+              ...data.metrics.selected,
+              // Highlight security-related metrics
+              httpsCounts: data.metrics.requestsByType['https'] || 0,
+              insecureRequests: data.metrics.requestsByType['http'] || 0
+            }
+          }
+        };
+
+      case 'errors':
+        return {
+          ...data,
+          insights: data.insights.filter(insight =>
+            insight.category.toLowerCase().includes('error') ||
+            insight.category.toLowerCase().includes('failure') ||
+            insight.severity === 'critical'
+          ),
+          metrics: {
+            ...data.metrics,
+            selected: {
+              ...data.metrics.selected,
+              // Focus on error metrics
+              errorRequests: data.metrics.selected.errorRequests,
+              statusCodes: data.metrics.statusCodes
+            }
+          }
+        };
+
+      case 'cache':
+        return {
+          ...data,
+          insights: data.insights.filter(insight =>
+            insight.category.toLowerCase().includes('cache') ||
+            insight.category.toLowerCase().includes('performance')
+          ),
+          metrics: {
+            ...data.metrics,
+            selected: {
+              ...data.metrics.selected,
+              // Show cache-related metrics
+              cacheHits: data.metrics.httpMetrics.cacheHits,
+              cacheMisses: data.metrics.httpMetrics.cacheMisses
+            }
+          }
+        };
+
+      default:
+        return data;
+    }
+  };
+
+  const filteredAndSearchedData = filterByCategory(
+    filterDataBySearchAndFilters(filteredData, searchTerm, activeFilters),
+    activeCategory
+  );
+
+  // Add report header component
+  const ReportHeader = () => (
+    <div className="report-header">
+      <div className="report-meta">
+        <h1>{siteInfo.domainName} Performance Analysis</h1>
+        <div className="report-details">
+          <span>Report ID: {siteInfo.reportId}</span>
+          <span>Generated: {siteInfo.timestamp}</span>
+          <span>Environment: {siteInfo.environment}</span>
+          <span>Analyzed by: {currentPersona.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+        </div>
+      </div>
+      <div className="report-summary">
+        <h2>Executive Summary</h2>
+        {currentPersona === 'salesEngineer' ? (
+          <p>Business Impact Analysis for {siteInfo.domainName}</p>
+        ) : currentPersona === 'developer' ? (
+          <p>Technical Performance Report for {siteInfo.domainName}</p>
+        ) : (
+          <p>Quality Assurance Analysis for {siteInfo.domainName}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  // Persona-specific summary
+  const getPersonaSummary = (metrics, insights) => {
+    switch(currentPersona) {
+      case 'developer':
+        return {
+          title: 'Technical Overview',
+          summary: `Analysis of ${metrics.totalRequests} requests across ${metrics.domains.length} domains. 
+                   Average response time: ${metrics.primary.avgResponseTime}ms.`
+        };
+      case 'qa':
+        return {
+          title: 'Quality Metrics',
+          summary: `Error rate: ${(metrics.primary.errorRate * 100).toFixed(1)}%. 
+                   ${metrics.selected.errorRequests} issues identified across ${metrics.domains.length} domains.`
+        };
+      case 'salesEngineer':
+        return {
+          title: 'Business Impact',
+          summary: `Site performance analysis for ${siteInfo.domainName}. 
+                   Key metrics indicate ${metrics.primary.errorRate < 0.01 ? 'stable' : 'attention needed'} performance.`
+        };
+      default:
+        return { title: 'Analysis Summary', summary: '' };
+    }
+  };
 
   return (
     <div className="results-container">
-      <PersonaSwitcher
-        currentPersona={currentPersona}
-        onPersonaChange={handlePersonaChange}
-      />
+      <ReportHeader />
       
-      <SearchAndFilter
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        activeFilters={activeFilters}
-        onFilterChange={setActiveFilters}
-      />
+      <div className="report-body">
+        <PersonaSwitcher
+          currentPersona={currentPersona}
+          onPersonaChange={handlePersonaChange}
+          domain={siteInfo.domainName}
+        />
+        
+        <div className="analysis-summary">
+          {getPersonaSummary(filteredAndSearchedData.metrics, filteredAndSearchedData.insights)}
+        </div>
 
-      <MetricsPanel 
-        metrics={filteredAndSearchedData.metrics} 
-      />
-      
-      <PerformanceCharts 
-        metrics={filteredAndSearchedData.metrics}
-        persona={currentPersona}
-      />
-      
-      <MetricsDrilldown 
-        metric={filteredAndSearchedData.metrics.selected || filteredAndSearchedData.metrics.primary || {}}
-        timeseriesData={filteredAndSearchedData.metrics.timeseries}
-      />
-      
-      <InsightsPanel 
-        insights={filteredAndSearchedData.insights} 
-        error={filteredAndSearchedData.error}
-      />
+        <SearchAndFilter
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          activeFilters={activeFilters}
+          onFilterChange={setActiveFilters}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          context={siteInfo}
+        />
+
+        <MetricsPanel 
+          metrics={filteredAndSearchedData.metrics}
+          domain={siteInfo.domainName}
+          persona={currentPersona}
+        />
+        
+        <PerformanceCharts 
+          metrics={filteredAndSearchedData.metrics}
+          persona={currentPersona}
+          domain={siteInfo.domainName}
+        />
+        
+        <MetricsDrilldown 
+          metric={filteredAndSearchedData.metrics.selected || filteredAndSearchedData.metrics.primary || {}}
+          timeseriesData={filteredAndSearchedData.metrics.timeseries}
+          domain={siteInfo.domainName}
+        />
+        
+        <InsightsPanel 
+          insights={filteredAndSearchedData.insights}
+          error={filteredAndSearchedData.error}
+          context={siteInfo}
+          persona={currentPersona}
+        />
+      </div>
+
+      <div className="report-footer">
+        <p>Generated by HAR Analyzer on {siteInfo.timestamp}</p>
+        <p>Report ID: {siteInfo.reportId}</p>
+      </div>
     </div>
   );
 }

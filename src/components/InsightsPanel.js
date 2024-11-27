@@ -106,6 +106,31 @@ export function InsightsPanel({ metrics, insights, error, persona, onPersonaChan
     };
   }
 
+  const getActionableInsights = (insights, persona) => {
+    switch(persona) {
+      case 'developer':
+        return insights.filter(i => 
+          i.scope === 'code' || 
+          i.scope === 'performance' ||
+          i.implementationComplexity <= 3 // Things developers can actually fix
+        );
+      
+      case 'qa':
+        return insights.filter(i => 
+          i.scope === 'testing' ||
+          i.scope === 'reliability' ||
+          i.requiresTestCase
+        );
+      
+      case 'salesEngineer':
+        return insights.filter(i => 
+          i.scope === 'business' ||
+          i.scope === 'userExperience' ||
+          i.hasBusinessMetric
+        );
+    }
+  };
+
   if (error) {
     return <div className="error-message">{error}</div>;
   }
@@ -117,17 +142,9 @@ export function InsightsPanel({ metrics, insights, error, persona, onPersonaChan
   return (
     <div className="insights-panel">
       {insights.map((insight, index) => (
-        <div key={index} className="insight">
-          <h4>{insight.category}</h4>
-          <p>{insight.message}</p>
-          {/* Display details and recommendations if available */}
-          {insight.details && insight.details.length > 0 && (
-            <ul>
-              {insight.details.map((detail, i) => (
-                <li key={i}>{detail}</li>
-              ))}
-            </ul>
-          )}
+        <div key={index} className="insight-box">
+          <h3>{insight.category}</h3>
+          <p>{insight.content}</p>
         </div>
       ))}
     </div>

@@ -120,4 +120,49 @@
 
 .insights-panel .insight h4 {
   color: #ffcc00;
+}
+
+.report-header {
+  padding: 2rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 2rem;
+}
+
+.report-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.report-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.report-summary {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.analysis-summary {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.report-footer {
+  margin-top: 3rem;
+  padding: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
 } 
