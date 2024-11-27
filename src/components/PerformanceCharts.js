@@ -11,82 +11,51 @@ import {
 import './PerformanceCharts.css';
 
 function TimeSeriesChart({ data }) {
-  try {
-    // More thorough defensive checks
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      console.log('Invalid or empty data:', data);
-      return <div className="no-data">No timeline data available</div>;
+  // Ensure data is in the correct format and not empty
+  const validData = React.useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return [];
     }
+    
+    return data.map(point => ({
+      timestamp: new Date(Number(point.timestamp)).getTime(),
+      value: Number(point.value) || 0
+    })).sort((a, b) => a.timestamp - b.timestamp);
+  }, [data]);
 
-    // Validate and transform data for Recharts
-    const validData = data.map(point => ({
-      ...point,
-      // Ensure timestamp is a valid number
-      timestamp: Number(point.timestamp),
-      // Ensure value is a valid number
-      value: Number(point.value || 0)
-    })).filter(point => 
-      !isNaN(point.timestamp) && 
-      !isNaN(point.value)
-    );
-
-    if (validData.length === 0) {
-      console.log('No valid data points found:', data);
-      return <div className="no-data">No valid data points available</div>;
-    }
-
-    // Sort data by timestamp
-    validData.sort((a, b) => a.timestamp - b.timestamp);
-
-    console.log('Chart data after validation:', validData);
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart 
-          data={validData} 
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="timestamp"
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(timestamp) => {
-              try {
-                return new Date(timestamp).toLocaleTimeString();
-              } catch (e) {
-                return 'Invalid time';
-              }
-            }}
-          />
-          <YAxis 
-            type="number"
-            domain={['auto', 'auto']}
-          />
-          <RechartsTooltip
-            labelFormatter={(timestamp) => {
-              try {
-                return new Date(timestamp).toLocaleString();
-              } catch (e) {
-                return 'Invalid time';
-              }
-            }}
-            formatter={(value) => `${Number(value).toFixed(2)}ms`}
-          />
-          <Line 
-            type="monotone" 
-            dataKey="value" 
-            stroke="#8884d8" 
-            activeDot={{ r: 8 }} 
-            isAnimationActive={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
-  } catch (error) {
-    console.error('Error rendering chart:', error);
-    return <div className="no-data">Error rendering chart</div>;
+  if (!validData.length) {
+    return <div className="no-data">No data available</div>;
   }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={validData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="timestamp"
+          type="number"
+          scale="time"
+          domain={['auto', 'auto']}
+          tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
+        />
+        <YAxis 
+          type="number"
+          domain={['auto', 'auto']}
+        />
+        <RechartsTooltip
+          labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
+          formatter={(value) => [`${value.toFixed(2)}ms`, 'Response Time']}
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#8884d8"
+          dot={false}
+          isAnimationActive={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
 }
 
 export function PerformanceCharts({ metrics, persona }) {
