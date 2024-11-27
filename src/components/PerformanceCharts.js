@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import ChartErrorBoundary from './ErrorBoundary';
 import { 
   LineChart, 
   Line, 
@@ -11,6 +13,16 @@ import {
 import './PerformanceCharts.css';
 
 function TimeSeriesChart({ data }) {
+  // Add PropTypes validation
+  TimeSeriesChart.propTypes = {
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        timestamp: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired
+      })
+    ).isRequired
+  };
+
   // Defensive data transformation
   const chartData = React.useMemo(() => {
     if (!Array.isArray(data)) {
@@ -18,10 +30,10 @@ function TimeSeriesChart({ data }) {
       return [];
     }
 
+    // Recharts requires data points to have a unique x-axis value
     return data.map(point => ({
-      name: new Date(Number(point.timestamp)).toISOString(), // Recharts needs a 'name' property
-      timestamp: Number(point.timestamp),
-      value: Number(point.value)
+      x: Number(point.timestamp), // Use 'x' instead of 'name' or 'timestamp'
+      y: Number(point.value)      // Use 'y' instead of 'value'
     }));
   }, [data]);
 
@@ -32,20 +44,27 @@ function TimeSeriesChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
-          dataKey="name"
-          tickFormatter={(time) => new Date(time).toLocaleTimeString()}
+          dataKey="x"
+          type="number"
+          domain={['auto', 'auto']}
+          tickFormatter={(x) => new Date(x).toLocaleTimeString()}
         />
-        <YAxis />
+        <YAxis 
+          dataKey="y"
+          type="number"
+        />
         <RechartsTooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
-          formatter={(value) => [`${value.toFixed(2)}ms`, 'Response Time']}
+          labelFormatter={(x) => new Date(x).toLocaleString()}
+          formatter={(value) => [`${value}ms`, 'Response Time']}
         />
         <Line 
           type="monotone"
-          dataKey="value"
+          dataKey="y"
           stroke="#8884d8"
           isAnimationActive={false}
+          dot={false}
         />
       </LineChart>
     </ResponsiveContainer>

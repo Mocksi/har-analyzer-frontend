@@ -1,6 +1,6 @@
 import React from 'react';
 
-export class ErrorBoundary extends React.Component {
+class ChartErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
@@ -10,21 +10,17 @@ export class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
+  componentDidCatch(error, errorInfo) {
+    console.error('Chart Error:', error, errorInfo);
+  }
+
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="error-state">
-          <h2>Something went wrong</h2>
-          <button 
-            className="button is-secondary"
-            onClick={() => window.location.reload()}
-          >
-            Try Again
-          </button>
-        </div>
-      );
+      return <div className="chart-error">Unable to display chart</div>;
     }
 
     return this.props.children;
   }
-} 
+}
+
+export default ChartErrorBoundary; 

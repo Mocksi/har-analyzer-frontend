@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Line } from 'react-chartjs-2';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import './MetricsDrilldown.css';
 import { ErrorState } from './ErrorState';
 import { LoadingState } from './LoadingState';
@@ -96,7 +96,26 @@ export function MetricsDrilldown({ metric = {}, timeseriesData = [] }) {
 
       <div className="drilldown-content">
         <div className="metric-chart">
-          <Line data={timeseriesData} options={chartOptions} />
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={timeseriesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="timestamp"
+                tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
+              />
+              <YAxis />
+              <Tooltip 
+                labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
+                formatter={(value) => [`${value}ms`, 'Response Time']}
+              />
+              <Line 
+                type="monotone"
+                dataKey="value"
+                stroke="#8884d8"
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
         
         <div className="metric-details">
