@@ -18,12 +18,15 @@ function TimeSeriesChart({ data }) {
       return <div className="no-data">No timeline data available</div>;
     }
 
-    // Validate data structure before rendering
-    const validData = data.filter(point => 
-      point && 
-      typeof point.timestamp === 'number' && 
-      !isNaN(point.timestamp) &&
-      typeof point.value === 'number' &&
+    // Validate and transform data for Recharts
+    const validData = data.map(point => ({
+      ...point,
+      // Ensure timestamp is a valid number
+      timestamp: Number(point.timestamp),
+      // Ensure value is a valid number
+      value: Number(point.value || 0)
+    })).filter(point => 
+      !isNaN(point.timestamp) && 
       !isNaN(point.value)
     );
 
@@ -31,6 +34,11 @@ function TimeSeriesChart({ data }) {
       console.log('No valid data points found:', data);
       return <div className="no-data">No valid data points available</div>;
     }
+
+    // Sort data by timestamp
+    validData.sort((a, b) => a.timestamp - b.timestamp);
+
+    console.log('Chart data after validation:', validData);
 
     return (
       <ResponsiveContainer width="100%" height={300}>
@@ -41,6 +49,8 @@ function TimeSeriesChart({ data }) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
             dataKey="timestamp"
+            type="number"
+            domain={['dataMin', 'dataMax']}
             tickFormatter={(timestamp) => {
               try {
                 return new Date(timestamp).toLocaleTimeString();
@@ -49,7 +59,10 @@ function TimeSeriesChart({ data }) {
               }
             }}
           />
-          <YAxis />
+          <YAxis 
+            type="number"
+            domain={['auto', 'auto']}
+          />
           <RechartsTooltip
             labelFormatter={(timestamp) => {
               try {
@@ -65,6 +78,7 @@ function TimeSeriesChart({ data }) {
             dataKey="value" 
             stroke="#8884d8" 
             activeDot={{ r: 8 }} 
+            isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>
