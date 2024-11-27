@@ -84,7 +84,7 @@ export function Results() {
 
   if (loading && !data) return <LoadingState />;
   if (error) return <ErrorState error={error} onRetry={fetchResults} />;
-  if (!data) return null;
+  if (!data || !data.metrics) return null;
 
   const filteredData = filterDataBySearchAndFilters(data, searchTerm, activeFilters);
 
@@ -110,11 +110,14 @@ export function Results() {
       />
       
       <MetricsDrilldown 
-        metric={filteredData.metrics.selected || filteredData.metrics.primary}
-        timeseriesData={filteredData.metrics.timeseries}
+        metric={filteredData.metrics?.selected || filteredData.metrics?.primary || {}}
+        timeseriesData={filteredData.metrics?.timeseries || []}
       />
       
-      <InsightsPanel insights={filteredData.insights} />
+      <InsightsPanel 
+        insights={filteredData.insights} 
+        error={filteredData.error}
+      />
     </div>
   );
 }

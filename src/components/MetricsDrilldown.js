@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export function MetricsDrilldown({ metric, timeseriesData }) {
+export function MetricsDrilldown({ metric = {}, timeseriesData = [] }) {
   const [timeRange, setTimeRange] = useState('1h');
   const [detailLevel, setDetailLevel] = useState('summary');
 
@@ -58,12 +58,8 @@ export function MetricsDrilldown({ metric, timeseriesData }) {
     }
   };
 
-  if (!metric || !timeseriesData) {
-    return (
-      <div className="metric-drilldown loading">
-        <LoadingState />
-      </div>
-    );
+  if (!metric || Object.keys(metric).length === 0) {
+    return null;
   }
 
   return (
@@ -123,16 +119,13 @@ export function MetricsDrilldown({ metric, timeseriesData }) {
 }
 
 MetricsDrilldown.propTypes = {
-  metric: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    currentValue: PropTypes.number,
-    trend: PropTypes.string,
-    threshold: PropTypes.number
-  }),
-  timeseriesData: PropTypes.shape({
-    labels: PropTypes.arrayOf(PropTypes.string),
-    datasets: PropTypes.arrayOf(PropTypes.object)
-  })
+  metric: PropTypes.object,
+  timeseriesData: PropTypes.array
+};
+
+MetricsDrilldown.defaultProps = {
+  metric: {},
+  timeseriesData: []
 };
 
 export default MetricsDrilldown; 
