@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { PERSONA_CONFIGS } from '../config/personas';
+import { formatMetric, getMetricType } from '../utils/metricUtils';
 import './MetricsPanel.css';
 
 export function MetricsPanel({ metrics, persona }) {
