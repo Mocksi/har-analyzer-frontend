@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import './InsightsPanel.css';
 
-function InsightsPanel({ insights }) {
+export function InsightsPanel({ insights }) {
   const [severityFilter, setSeverityFilter] = useState('all');
   
   if (!insights || !insights.length) {

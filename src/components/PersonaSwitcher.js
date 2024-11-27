@@ -30,4 +30,6 @@ export function PersonaSwitcher({ currentPersona, onPersonaChange }) {
 PersonaSwitcher.propTypes = {
   currentPersona: PropTypes.string.isRequired,
   onPersonaChange: PropTypes.func.isRequired
-}; 
+};
+
+export default PersonaSwitcher; 

@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { PersonaSwitcher } from './PersonaSwitcher';
-import { SearchAndFilter } from './SearchAndFilter';
-import { MetricsDrilldown } from './MetricsDrilldown';
-import { MetricsPanel } from './MetricsPanel';
-import { PerformanceCharts } from './PerformanceCharts';
-import { InsightsPanel } from './InsightsPanel';
-import { LoadingState } from './LoadingState';
-import { ErrorState } from './ErrorState';
+import PersonaSwitcher from './PersonaSwitcher';
+import SearchAndFilter from './SearchAndFilter';
+import MetricsDrilldown from './MetricsDrilldown';
+import MetricsPanel from './MetricsPanel';
+import PerformanceCharts from './PerformanceCharts';
+import InsightsPanel from './InsightsPanel';
+import LoadingState from './LoadingState';
+import ErrorState from './ErrorState';
 import './Results.css';
 import { filterDataBySearchAndFilters } from '../utils/dataUtils';
 

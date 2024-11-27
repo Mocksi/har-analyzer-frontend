@@ -8,4 +8,6 @@ export function ErrorState({ error, onRetry }) {
       <button onClick={onRetry}>Retry</button>
     </div>
   );
-} 
+}
+
+export default ErrorState; 

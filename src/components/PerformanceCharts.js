@@ -27,7 +27,7 @@ Chart.register(
   ArcElement
 );
 
-function PerformanceCharts({ metrics, persona }) {
+export function PerformanceCharts({ metrics, persona }) {
   if (!metrics) return null;
 
   const chartOptions = {

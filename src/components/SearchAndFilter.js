@@ -44,4 +44,6 @@ SearchAndFilter.propTypes = {
   onSearchChange: PropTypes.func.isRequired,
   activeFilters: PropTypes.arrayOf(PropTypes.string).isRequired,
   onFilterChange: PropTypes.func.isRequired
-}; 
+};
+
+export default SearchAndFilter; 

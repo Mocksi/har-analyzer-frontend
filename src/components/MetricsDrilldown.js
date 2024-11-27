@@ -133,4 +133,6 @@ MetricsDrilldown.propTypes = {
     labels: PropTypes.arrayOf(PropTypes.string),
     datasets: PropTypes.arrayOf(PropTypes.object)
   })
-}; 
+};
+
+export default MetricsDrilldown; 

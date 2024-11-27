@@ -8,4 +8,6 @@ export function LoadingState() {
       <p>Loading analysis results...</p>
     </div>
   );
-} 
+}
+
+export default LoadingState; 
