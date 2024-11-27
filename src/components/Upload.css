@@ -1,0 +1,90 @@
+.upload-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: var(--space-xl);
+  background-color: var(--black-lite);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+}
+
+h1 {
+  color: var(--white);
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  font-family: 'Spline Sans Mono', monospace;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-group label {
+  color: var(--light-grey);
+  font-family: 'Spline Sans Mono', monospace;
+}
+
+.persona-select {
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--black);
+  border: 1px solid var(--dark-grey);
+  border-radius: 8px;
+  color: var(--light-grey);
+  font-family: 'Spline Sans Mono', monospace;
+}
+
+.file-input {
+  padding: var(--space-sm);
+  background-color: var(--black);
+  border: 2px dashed var(--dark-grey);
+  border-radius: 8px;
+  color: var(--light-grey);
+  cursor: pointer;
+}
+
+.file-input:hover {
+  border-color: var(--primary-fixed);
+}
+
+.submit-button {
+  padding: var(--space-md);
+  background-color: var(--primary-fixed);
+  border: none;
+  border-radius: 8px;
+  color: var(--white);
+  font-family: 'Spline Sans Mono', monospace;
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  padding: var(--space-sm);
+  background-color: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  color: var(--error);
+  font-family: 'Spline Sans Mono', monospace;
+}
+
+@media (max-width: var(--breakpoint-md)) {
+  .upload-container {
+    margin: 1rem;
+    padding: var(--space-lg);
+  }
+} 
