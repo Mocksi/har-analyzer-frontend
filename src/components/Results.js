@@ -64,12 +64,11 @@ export function Results() {
 
   const fetchResults = async () => {
     try {
-      setLoading(true);
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
       );
       
-      console.log('Response:', response.data); // Debug the actual response
+      console.log('Response:', response.data);
 
       if (response.data.status === 'processing') {
         console.log('Job still processing...');
@@ -82,6 +81,7 @@ export function Results() {
         if (processedData) {
           setData(processedData);
           setError(null);
+          setLoading(false);
           return true;
         }
       }
@@ -92,8 +92,6 @@ export function Results() {
       console.error('Error fetching results:', error);
       setError(error.message);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,11 +99,8 @@ export function Results() {
     setCurrentPersona(newPersona);
     setLoading(true);
     setRetryCount(0);
-    
-    // Clear existing data to show loading state
     setData(null);
     
-    // Remove cached data for this job-persona combination
     localStorage.removeItem(`results-${jobId}-${newPersona}`);
     
     try {
@@ -113,15 +108,14 @@ export function Results() {
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${newPersona}`
       );
       
-      if (response.data) {
+      if (response.data && response.data.metrics) {
         localStorage.setItem(`results-${jobId}-${newPersona}`, JSON.stringify(response.data));
         setData(response.data);
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching results for new persona:', error);
       setError(error.response?.data?.error || 'Failed to fetch results');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -133,11 +127,16 @@ export function Results() {
     let intervalId;
     
     const startPolling = async () => {
+      setLoading(true);
+      
       // Try to load from cache first
       const cachedData = localStorage.getItem(getCacheKey());
       if (cachedData) {
-        setData(JSON.parse(cachedData));
-        setLoading(false);
+        const parsed = JSON.parse(cachedData);
+        if (parsed.metrics) {
+          setData(parsed);
+          setLoading(false);
+        }
       }
 
       // Start polling
