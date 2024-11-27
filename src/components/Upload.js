@@ -1,6 +1,6 @@
 // src/Upload.js
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Upload.css';
@@ -9,12 +9,49 @@ export function Upload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
-    setError(null);
+    const selectedFile = event.target.files[0];
+    if (selectedFile?.type === 'application/json' || selectedFile?.name.endsWith('.har')) {
+      setFile(selectedFile);
+      setError(null);
+    } else {
+      setError('Please upload a valid HAR file');
+    }
   };
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile?.type === 'application/json' || droppedFile?.name.endsWith('.har')) {
+      setFile(droppedFile);
+      setError(null);
+    } else {
+      setError('Please upload a valid HAR file');
+    }
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -102,15 +139,31 @@ export function Upload() {
           <p>Analyze your application's performance with AI-powered insights</p>
           
           <form onSubmit={handleSubmit} className="upload-form">
-            <div className="file-drop-zone">
+            <div 
+              className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <input
                 type="file"
-                accept=".har"
+                accept=".har,application/json"
                 onChange={handleFileChange}
                 id="har-file"
+                className="file-input"
               />
               <label htmlFor="har-file">
-                {file ? file.name : 'Drop HAR file here or click to browse'}
+                {file ? (
+                  <span className="file-name">{file.name}</span>
+                ) : (
+                  <>
+                    <span className="upload-icon">📁</span>
+                    <span className="upload-text">
+                      Drop HAR file here or click to browse
+                    </span>
+                  </>
+                )}
               </label>
             </div>
 
