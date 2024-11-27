@@ -60,15 +60,15 @@ export function PerformanceCharts({ metrics, persona }) {
   // Ensure timeseries exists and is an array
   const timeseriesData = Array.isArray(metrics.timeseries) ? metrics.timeseries : [];
   
-  // Transform and validate data - only include points with valid timestamps and responseTime
+  // Transform and validate data - only include points with valid timestamps and value
   const chartData = timeseriesData
-    .filter(point => point && typeof point.timestamp === 'number' && typeof point.responseTime === 'number')
+    .filter(point => point && typeof point.timestamp === 'number' && typeof point.value === 'number')
     .map(point => ({
       timestamp: point.timestamp,
-      value: point.responseTime
+      value: point.value
     }));
 
-  console.log('Transformed chart data:', chartData); // Debug the data structure
+  console.log('Transformed chart data:', chartData);
 
   return (
     <div className="charts-container">
