@@ -11,46 +11,40 @@ import {
 import './PerformanceCharts.css';
 
 function TimeSeriesChart({ data }) {
-  // Ensure data is in the correct format and not empty
-  const validData = React.useMemo(() => {
-    if (!Array.isArray(data) || data.length === 0) {
+  // Defensive data transformation
+  const chartData = React.useMemo(() => {
+    if (!Array.isArray(data)) {
+      console.warn('TimeSeriesChart: Invalid data format', data);
       return [];
     }
-    
+
     return data.map(point => ({
-      timestamp: new Date(Number(point.timestamp)).getTime(),
-      value: Number(point.value) || 0
-    })).sort((a, b) => a.timestamp - b.timestamp);
+      name: new Date(Number(point.timestamp)).toISOString(), // Recharts needs a 'name' property
+      timestamp: Number(point.timestamp),
+      value: Number(point.value)
+    }));
   }, [data]);
 
-  if (!validData.length) {
-    return <div className="no-data">No data available</div>;
+  if (!chartData.length) {
+    return <div>No timeline data available</div>;
   }
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={validData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
+      <LineChart data={chartData}>
         <XAxis 
-          dataKey="timestamp"
-          type="number"
-          scale="time"
-          domain={['auto', 'auto']}
-          tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
+          dataKey="name"
+          tickFormatter={(time) => new Date(time).toLocaleTimeString()}
         />
-        <YAxis 
-          type="number"
-          domain={['auto', 'auto']}
-        />
+        <YAxis />
         <RechartsTooltip
-          labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
+          labelFormatter={(label) => new Date(label).toLocaleString()}
           formatter={(value) => [`${value.toFixed(2)}ms`, 'Response Time']}
         />
-        <Line
+        <Line 
           type="monotone"
           dataKey="value"
           stroke="#8884d8"
-          dot={false}
           isAnimationActive={false}
         />
       </LineChart>
