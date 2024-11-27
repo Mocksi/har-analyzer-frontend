@@ -117,4 +117,33 @@
 .insight-recommendations h4 {
   margin: 1rem 0 0.5rem;
   color: var(--text-secondary);
+}
+
+.insight-box {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.insight-box.info {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+}
+
+.insight-box.warning {
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+}
+
+.insight-box.error {
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+}
+
+.insight-details, .insight-recommendations {
+  margin-top: 0.5rem;
+}
+
+.insight-recommendations h4 {
+  margin: 0.5rem 0;
 } 
