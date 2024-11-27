@@ -26,14 +26,16 @@ export function InsightsPanel({ insights, error }) {
     );
   }
 
-  const filteredInsights = severityFilter === 'all'
-    ? insights
-    : insights.filter(insight => insight.severity === severityFilter);
+  const insightsArray = Array.isArray(insights) ? insights : [];
 
-  const severityCounts = insights.reduce((acc, insight) => {
+  const severityCounts = insightsArray.reduce((acc, insight) => {
     acc[insight.severity] = (acc[insight.severity] || 0) + 1;
     return acc;
   }, {});
+
+  const filteredInsights = severityFilter === 'all'
+    ? insightsArray
+    : insightsArray.filter(insight => insight.severity === severityFilter);
 
   return (
     <div className="insights-panel">
@@ -44,7 +46,7 @@ export function InsightsPanel({ insights, error }) {
             className={`filter-btn ${severityFilter === 'all' ? 'active' : ''}`}
             onClick={() => setSeverityFilter('all')}
           >
-            All ({insights.length})
+            All ({insightsArray.length})
           </button>
           {Object.entries(severityCounts).map(([severity, count]) => (
             <button
@@ -58,24 +60,20 @@ export function InsightsPanel({ insights, error }) {
         </div>
       </div>
 
-      <div className="insights-grid">
-        {filteredInsights.map((insight, index) => {
-          const isExpired = new Date(insight.expires_at) < new Date();
-          
-          return (
+      {insightsArray.length === 0 ? (
+        <div className="no-insights">
+          <p>No insights available yet.</p>
+        </div>
+      ) : (
+        <div className="insights-grid">
+          {filteredInsights.map((insight, index) => (
             <div 
               key={index} 
-              className={`insight-card ${insight.severity} ${isExpired ? 'expired' : ''}`}
+              className={`insight-card ${insight.severity}`}
             >
               <div className="insight-header">
                 <span className="severity-badge">
                   {insight.severity.toUpperCase()}
-                </span>
-                <span className="expiry-time">
-                  {isExpired 
-                    ? 'Expired'
-                    : `Expires ${formatDistanceToNow(new Date(insight.expires_at))}`
-                  }
                 </span>
               </div>
               <p className="insight-message">{insight.message}</p>
@@ -86,9 +84,9 @@ export function InsightsPanel({ insights, error }) {
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
