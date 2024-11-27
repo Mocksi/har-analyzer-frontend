@@ -66,7 +66,10 @@ export function Upload() {
         reader.readAsText(file);
       });
 
+      console.log('File read successfully, size:', fileContent.length);
       const harContent = JSON.parse(fileContent);
+      console.log('Sending request to:', `${process.env.REACT_APP_API_URL}/analyze`);
+      
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/analyze`,
         harContent,
@@ -76,6 +79,8 @@ export function Upload() {
           },
         }
       );
+      
+      console.log('Response received:', response.data);
       
       navigate(`/results/${response.data.jobId}`, { 
         state: { metrics: response.data.metrics } 

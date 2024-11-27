@@ -394,7 +394,15 @@ export function Results() {
         />
         
         <div className="analysis-summary">
-          {getPersonaSummary(filteredAndSearchedData.metrics, filteredAndSearchedData.insights)}
+          {(() => {
+            const { title, summary } = getPersonaSummary(filteredAndSearchedData.metrics, filteredAndSearchedData.insights);
+            return (
+              <>
+                <h3>{title}</h3>
+                <p>{summary}</p>
+              </>
+            );
+          })()}
         </div>
 
         <SearchAndFilter
