@@ -32,25 +32,35 @@ export function Results() {
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
       );
       
+      if (response.status === 202) {
+        console.log('Job still processing...');
+        setRetryCount(prev => prev + 1);
+        return false; // Continue polling
+      }
+      
       if (response.data) {
+        console.log('Results received');
         localStorage.setItem(`results-${jobId}`, JSON.stringify(response.data));
         setData(response.data);
         setError(null);
-        return true; // Data found, stop polling
+        return true; // Stop polling
       }
       
       setRetryCount(prev => prev + 1);
       return false; // No data yet, continue polling
     } catch (err) {
+      console.log('Error fetching results:', err.response?.status);
       if (err.response?.status === 404) {
         const cachedData = localStorage.getItem(`results-${jobId}`);
         if (cachedData) {
+          console.log('Using cached data');
           setData(JSON.parse(cachedData));
           setError(null);
           return true;
         }
         // If no cached data and not max retries, continue polling
         if (retryCount < MAX_RETRIES) {
+          console.log('No cache, continuing to poll');
           setRetryCount(prev => prev + 1);
           return false;
         }
@@ -111,7 +121,7 @@ export function Results() {
     );
   }
 
-  if (loading && !data) return <LoadingState />;
+  if (loading && !data) return <LoadingState retryCount={retryCount} maxRetries={MAX_RETRIES} />;
   if (error && !data) return <ErrorState error={error} onRetry={fetchResults} />;
   if (!data) return null;
 
