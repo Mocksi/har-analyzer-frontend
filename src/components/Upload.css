@@ -16,7 +16,7 @@
 .upload-panel {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 3rem;
   background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
@@ -26,6 +26,7 @@
   width: 100%;
   max-width: 500px;
   text-align: center;
+  margin-top: 3rem;
 }
 
 h1 {
