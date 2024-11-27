@@ -110,4 +110,22 @@
     overflow-x: auto;
     padding-bottom: var(--space-xs);
   }
+}
+
+.insights-panel.error {
+  border: 1px solid #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.insights-panel .error-message {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.insights-panel .error-message p:last-child {
+  color: #666;
+  margin-top: 0.5rem;
 } 

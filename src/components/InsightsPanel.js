@@ -2,13 +2,26 @@ import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import './InsightsPanel.css';
 
-export function InsightsPanel({ insights }) {
+export function InsightsPanel({ insights, error }) {
   const [severityFilter, setSeverityFilter] = useState('all');
   
-  if (!insights || !insights.length) {
+  if (error) {
     return (
-      <div className="insights-panel empty">
-        <p>No insights available yet. Analysis may still be in progress.</p>
+      <div className="insights-panel error">
+        <h3>AI Analysis Status</h3>
+        <div className="error-message">
+          <p>{error}</p>
+          <p>The basic metrics analysis is still available above.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!insights) {
+    return (
+      <div className="insights-panel loading">
+        <h3>Analyzing Data...</h3>
+        <p>Generating AI-powered insights...</p>
       </div>
     );
   }

@@ -22,6 +22,8 @@ export function Results() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 12; // 1 minute maximum (12 * 5 seconds)
 
   const fetchResults = async () => {
     try {
@@ -29,28 +31,58 @@ export function Results() {
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
       );
-      setData(response.data);
-      setError(null);
+      
+      // If we have actual results (not just processing status)
+      if (response.data && response.data.insights) {
+        setData(response.data);
+        setError(null);
+        return true; // Signal to stop polling
+      }
+      
+      // Still processing
+      setRetryCount(prev => prev + 1);
+      return false;
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch results');
+      return true; // Signal to stop polling on error
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResults();
-    const interval = setInterval(async () => {
-      try {
-        await fetchResults();
-      } catch (err) {
-        setError(err.response?.data?.error || 'Failed to fetch results');
+    let intervalId;
+    
+    const startPolling = async () => {
+      // Initial fetch
+      const shouldStop = await fetchResults();
+      
+      if (!shouldStop && retryCount < MAX_RETRIES) {
+        // Start polling only if we need to continue
+        intervalId = setInterval(async () => {
+          const shouldStop = await fetchResults();
+          if (shouldStop || retryCount >= MAX_RETRIES) {
+            clearInterval(intervalId);
+          }
+        }, 5000);
       }
-    }, 5000);
-    return () => clearInterval(interval);
+    };
+
+    startPolling();
+
+    // Cleanup
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [jobId, currentPersona]);
 
-  if (loading) return <LoadingState />;
+  if (retryCount >= MAX_RETRIES) {
+    return <ErrorState error={{ message: 'Analysis timed out. Please try again.' }} />;
+  }
+
+  if (loading && !data) return <LoadingState />;
   if (error) return <ErrorState error={error} onRetry={fetchResults} />;
   if (!data) return null;
 
