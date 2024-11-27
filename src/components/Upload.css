@@ -79,16 +79,18 @@ kbd {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: #222222;
+  background: rgba(34, 34, 34, 0.8);
   min-height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(5px);
 }
 
 .file-drop-zone.dragging {
   border-color: #00f2fe;
   background: rgba(79, 172, 254, 0.1);
+  box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
 }
 
 .file-input {
@@ -128,21 +130,25 @@ kbd {
   margin-top: 1rem;
   width: 100%;
   padding: 0.75rem;
-  background: #007bff;
+  background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .upload-button:disabled {
-  background: #ccc;
+  background: #333;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .upload-button:hover:not(:disabled) {
-  background: #0056b3;
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.2);
 }
 
 ul {

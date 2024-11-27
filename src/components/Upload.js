@@ -59,7 +59,6 @@ export function Upload() {
     setUploading(true);
 
     try {
-      // Read the file content
       const fileContent = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
@@ -67,10 +66,7 @@ export function Upload() {
         reader.readAsText(file);
       });
 
-      // Parse the HAR content
       const harContent = JSON.parse(fileContent);
-
-      // Send the parsed JSON directly instead of FormData
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/analyze`,
         harContent,
@@ -81,7 +77,9 @@ export function Upload() {
         }
       );
       
-      navigate(`/results/${response.data.jobId}`);
+      navigate(`/results/${response.data.jobId}`, { 
+        state: { metrics: response.data.metrics } 
+      });
     } catch (err) {
       console.error('Upload error:', err);
       if (err.name === 'SyntaxError') {
