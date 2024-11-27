@@ -6,6 +6,30 @@ export function InsightsPanel({ metrics, insights, error, persona, onPersonaChan
   const [activeTab, setActiveTab] = useState('performance');
   const [severityFilter, setSeverityFilter] = useState('all');
 
+  // Helper function to filter insights by category
+  function filterInsightsByCategory(insights, category) {
+    if (!insights) return [];
+    return insights.filter(insight => 
+      insight.category === category || 
+      insight.categories?.includes(category)
+    );
+  }
+
+  // Helper function to calculate error rate
+  function calculateErrorRate(metrics) {
+    if (!metrics?.httpMetrics?.statusCodes) return 0;
+    
+    const totalRequests = metrics.httpMetrics.requests;
+    if (totalRequests === 0) return 0;
+
+    const errorRequests = Object.entries(metrics.httpMetrics.statusCodes)
+      .reduce((sum, [status, count]) => {
+        return status >= 400 ? sum + count : sum;
+      }, 0);
+
+    return errorRequests / totalRequests;
+  }
+
   const tabs = {
     performance: {
       label: 'Performance',
