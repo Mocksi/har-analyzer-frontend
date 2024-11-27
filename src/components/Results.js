@@ -22,8 +22,6 @@ export function Results() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 12;
 
   const fetchResults = async () => {
     try {
@@ -33,22 +31,24 @@ export function Results() {
       );
       
       if (response.data) {
-        const metrics = response.data.metrics || {};
-        metrics.selected = metrics.selected || {};
-        metrics.primary = metrics.primary || {};
-        metrics.timeseries = metrics.timeseries || [];
+        // Store in localStorage for persistence
+        localStorage.setItem(`results-${jobId}`, JSON.stringify(response.data));
         
-        setData({
-          ...response.data,
-          metrics
-        });
+        setData(response.data);
         setError(null);
         return true;
       }
-      
-      setRetryCount(prev => prev + 1);
       return false;
     } catch (err) {
+      if (err.response?.status === 404) {
+        // Try to get from localStorage
+        const cachedData = localStorage.getItem(`results-${jobId}`);
+        if (cachedData) {
+          setData(JSON.parse(cachedData));
+          setError(null);
+          return true;
+        }
+      }
       setError(err.response?.data?.error || 'Failed to fetch results');
       return true;
     } finally {
@@ -57,43 +57,19 @@ export function Results() {
   };
 
   useEffect(() => {
-    let intervalId;
+    // Try to load from cache first
+    const cachedData = localStorage.getItem(`results-${jobId}`);
+    if (cachedData) {
+      setData(JSON.parse(cachedData));
+      setLoading(false);
+    }
     
-    const startPolling = async () => {
-      const shouldStop = await fetchResults();
-      
-      if (!shouldStop && retryCount < MAX_RETRIES) {
-        intervalId = setInterval(async () => {
-          const shouldStop = await fetchResults();
-          if (shouldStop || retryCount >= MAX_RETRIES) {
-            clearInterval(intervalId);
-          }
-        }, 5000);
-      }
-    };
-
-    startPolling();
-    return () => intervalId && clearInterval(intervalId);
+    fetchResults();
   }, [jobId, currentPersona]);
 
-  if (retryCount >= MAX_RETRIES) {
-    return <ErrorState error={{ message: 'Analysis timed out. Please try again.' }} />;
-  }
-
   if (loading && !data) return <LoadingState />;
-  if (error) return <ErrorState error={error} onRetry={fetchResults} />;
-  if (!data || !data.metrics) return null;
-
-  const filteredData = {
-    metrics: {
-      ...data.metrics,
-      selected: data.metrics.selected || {},
-      primary: data.metrics.primary || {},
-      timeseries: data.metrics.timeseries || []
-    },
-    insights: data.insights,
-    error: data.error
-  };
+  if (error && !data) return <ErrorState error={error} onRetry={fetchResults} />;
+  if (!data) return null;
 
   return (
     <div className="results-container">
