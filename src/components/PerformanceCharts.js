@@ -30,10 +30,9 @@ function TimeSeriesChart({ data }) {
       return [];
     }
 
-    // Recharts requires data points to have a unique x-axis value
     return data.map(point => ({
-      x: Number(point.timestamp), // Use 'x' instead of 'name' or 'timestamp'
-      y: Number(point.value)      // Use 'y' instead of 'value'
+      x: Number(point.timestamp),
+      y: Number(point.value)
     }));
   }, [data]);
 
@@ -71,51 +70,42 @@ function TimeSeriesChart({ data }) {
   );
 }
 
-export function PerformanceCharts({ metrics, persona }) {
-  // Add defensive check for metrics
-  if (!metrics) {
-    console.log('No metrics provided');
-    return <div className="charts-loading">Loading metrics...</div>;
-  }
+export function PerformanceCharts({ metrics }) {
+  const { timeseries } = metrics;
 
-  // Ensure timeseries exists and is an array with explicit logging
-  const timeseriesData = metrics.timeseries;
-  console.log('Raw timeseries data:', timeseriesData);
-
-  if (!Array.isArray(timeseriesData)) {
-    console.log('Timeseries is not an array:', timeseriesData);
-    return <div className="no-data">Invalid timeline data format</div>;
-  }
-
-  // Transform and validate data with explicit logging
-  const chartData = timeseriesData
-    .filter(point => {
-      const isValid = point && 
-        typeof point.timestamp === 'number' && 
-        typeof point.value === 'number';
-      if (!isValid) {
-        console.log('Invalid data point:', point);
-      }
-      return isValid;
-    })
-    .map(point => ({
-      timestamp: point.timestamp,
-      value: point.value
-    }));
-
-  console.log('Transformed chart data:', chartData);
-
-  return (
-    <div className="charts-container">
-      <div className="chart">
-        <h3>Response Times Over Time</h3>
-        {chartData.length > 0 ? (
-          <TimeSeriesChart data={chartData} />
-        ) : (
-          <div className="no-data">No valid timeline data available</div>
-        )}
+  if (timeseries.length === 1) {
+    const { timestamp, value } = timeseries[0];
+    return (
+      <div className="performance-metrics">
+        <h3>Response Time</h3>
+        <p>{value.toFixed(2)} ms at {new Date(timestamp).toLocaleTimeString()}</p>
+        {/* Add benchmark comparison here if applicable */}
       </div>
-    </div>
+    );
+  }
+
+  // Existing chart rendering logic for multiple data points
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={timeseries}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="timestamp"
+          tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
+        />
+        <YAxis />
+        <RechartsTooltip 
+          labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
+          formatter={(value) => [`${value}ms`, 'Response Time']}
+        />
+        <Line 
+          type="monotone"
+          dataKey="value"
+          stroke="#8884d8"
+          isAnimationActive={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
   );
 }
 

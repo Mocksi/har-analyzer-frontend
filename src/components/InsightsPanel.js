@@ -106,49 +106,30 @@ export function InsightsPanel({ metrics, insights, error, persona, onPersonaChan
     };
   }
 
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
+  if (!insights || insights.length === 0) {
+    return <div>No insights available</div>;
+  }
+
   return (
     <div className="insights-panel">
-      <div className="insights-header">
-        <h3>AI Analysis</h3>
-        <div className="persona-selector">
-          {personas.map(p => (
-            <button
-              key={p.id}
-              className={`persona-button ${persona === p.id ? 'active' : ''}`}
-              onClick={() => onPersonaChange(p.id)}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="insights-tabs">
-        {Object.entries(tabs).map(([key, tab]) => (
-          <button
-            key={key}
-            className={`tab-button ${activeTab === key ? 'active' : ''}`}
-            onClick={() => setActiveTab(key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="insights-content">
-        {error ? (
-          <div className="error-message">{error}</div>
-        ) : (
-          <>
-            <MetricsDisplay metrics={tabs[activeTab].metrics} type={activeTab} />
-            <div className="insights-grid">
-              {tabs[activeTab].insights.map((insight, index) => (
-                <InsightCard key={index} insight={insight} />
+      {insights.map((insight, index) => (
+        <div key={index} className="insight">
+          <h4>{insight.category}</h4>
+          <p>{insight.message}</p>
+          {/* Display details and recommendations if available */}
+          {insight.details && insight.details.length > 0 && (
+            <ul>
+              {insight.details.map((detail, i) => (
+                <li key={i}>{detail}</li>
               ))}
-            </div>
-          </>
-        )}
-      </div>
+            </ul>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

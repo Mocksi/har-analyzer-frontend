@@ -3,8 +3,8 @@
   margin: 0 auto;
   padding: var(--space-xl);
   min-height: 100vh;
-  background-color: var(--black);
-  color: var(--light-grey);
+  background-color: #333;
+  color: #f0f0f0;
 }
 
 .results-header {
@@ -105,4 +105,19 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.results-container h3, .results-container h4 {
+  color: #ffffff;
+}
+
+.insights-panel .insight {
+  background-color: #444;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.insights-panel .insight h4 {
+  color: #ffcc00;
 } 
