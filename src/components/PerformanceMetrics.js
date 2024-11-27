@@ -14,14 +14,6 @@ function PerformanceMetrics({ metrics }) {
     return `${(ms/1000).toFixed(2)}s`;
   };
 
-  const getPathname = (url) => {
-    try {
-      return new URL(url).pathname;
-    } catch (e) {
-      return url;
-    }
-  };
-
   return (
     <div className="metrics-container">
       <div className="metric-card">
@@ -29,42 +21,27 @@ function PerformanceMetrics({ metrics }) {
         <ul>
           <li>Total Requests: {metrics.totalRequests}</li>
           <li>Total Load Time: {formatTime(metrics.totalTime)}</li>
-          <li>Total Size: {formatSize(metrics.totalSize)}</li>
-          <li>Unique Domains: {metrics.domains.length}</li>
+          <li>Total Size: {formatSize(metrics.httpMetrics.totalSize)}</li>
+          <li>Unique Domains: {metrics.domains.size}</li>
         </ul>
       </div>
       
       <div className="metric-card">
-        <h4>Slowest Requests</h4>
+        <h4>HTTP Metrics</h4>
         <ul>
-          {metrics.slowestRequests.map((req, index) => (
-            <li key={index}>
-              {getPathname(req.url)} - {formatTime(req.time)}
-            </li>
-          ))}
+          <li>Requests: {metrics.httpMetrics.requests}</li>
+          <li>Average Response Time: {formatTime(metrics.httpMetrics.totalTime / metrics.httpMetrics.requests)}</li>
+          <li>Cache Hit Rate: {((metrics.httpMetrics.cacheHits / (metrics.httpMetrics.cacheHits + metrics.httpMetrics.cacheMisses)) * 100).toFixed(2)}%</li>
         </ul>
       </div>
 
-      <div className="metric-card">
-        <h4>Largest Requests</h4>
-        <ul>
-          {metrics.largestRequests.map((req, index) => (
-            <li key={index}>
-              {getPathname(req.url)} - {formatSize(req.size)}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {metrics.errors.length > 0 && (
-        <div className="metric-card error-card">
-          <h4>Errors</h4>
+      {metrics.websocketMetrics.connections > 0 && (
+        <div className="metric-card">
+          <h4>WebSocket Metrics</h4>
           <ul>
-            {metrics.errors.map((error, index) => (
-              <li key={index}>
-                {error.status} {error.statusText} - {getPathname(error.url)}
-              </li>
-            ))}
+            <li>Connections: {metrics.websocketMetrics.connections}</li>
+            <li>Messages: {metrics.websocketMetrics.messageCount}</li>
+            <li>Duration: {formatTime(metrics.websocketMetrics.connectionDuration)}</li>
           </ul>
         </div>
       )}

@@ -13,6 +13,7 @@ import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 import './Results.css';
 import { filterDataBySearchAndFilters } from '../utils/dataUtils';
+import PerformanceMetrics from './PerformanceMetrics';
 
 const PERSONA_CONFIGS = {
   developer: {
@@ -63,9 +64,15 @@ export function Results() {
 
   return (
     <div className="results-container">
-      <MetricsPanel 
-        metrics={data.metrics}
-        persona={currentPersona}
+      <PersonaSwitcher 
+        currentPersona={currentPersona} 
+        onPersonaChange={setCurrentPersona} 
+      />
+      <PerformanceMetrics metrics={data.metrics} />
+      <PerformanceCharts metrics={data.metrics} />
+      <MetricsDrilldown 
+        metric={data.metrics.primary} 
+        timeseriesData={data.metrics.timeseries} 
       />
       <InsightsPanel 
         insights={data.insights}

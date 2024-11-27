@@ -2,147 +2,28 @@ import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import './InsightsPanel.css';
 
-export function InsightsPanel({ metrics, insights, error, persona, onPersonaChange }) {
-  const [activeTab, setActiveTab] = useState('performance');
-  const [severityFilter, setSeverityFilter] = useState('all');
-
-  // Helper function to filter insights by category
-  function filterInsightsByCategory(insights, category) {
-    if (!insights) return [];
-    return insights.filter(insight => 
-      insight.category === category || 
-      insight.categories?.includes(category)
-    );
-  }
-
-  // Helper function to calculate error rate
-  function calculateErrorRate(metrics) {
-    if (!metrics?.httpMetrics?.statusCodes) return 0;
-    
-    const totalRequests = metrics.httpMetrics.requests;
-    if (totalRequests === 0) return 0;
-
-    const errorRequests = Object.entries(metrics.httpMetrics.statusCodes)
-      .reduce((sum, [status, count]) => {
-        return status >= 400 ? sum + count : sum;
-      }, 0);
-
-    return errorRequests / totalRequests;
-  }
-
-  const tabs = {
-    performance: {
-      label: 'Performance',
-      insights: filterInsightsByCategory(insights, 'performance'),
-      metrics: getPerformanceMetrics(metrics)
-    },
-    security: {
-      label: 'Security',
-      insights: filterInsightsByCategory(insights, 'security'),
-      metrics: getSecurityMetrics(metrics)
-    },
-    errors: {
-      label: 'Errors',
-      insights: filterInsightsByCategory(insights, 'error'),
-      metrics: getErrorMetrics(metrics)
-    },
-    cache: {
-      label: 'Cache',
-      insights: filterInsightsByCategory(insights, 'cache'),
-      metrics: getCacheMetrics(metrics)
-    }
-  };
-
-  const personas = [
-    { id: 'developer', label: 'Developer' },
-    { id: 'qa', label: 'QA Professional' },
-    { id: 'business', label: 'Business/Sales' }
-  ];
-
-  // Helper functions to extract specific metrics
-  function getPerformanceMetrics(metrics) {
-    if (!metrics) return null;
-    return {
-      httpStats: {
-        avgResponseTime: metrics.httpMetrics.totalTime / metrics.httpMetrics.requests,
-        slowestRequests: metrics.httpMetrics.slowestRequests,
-        largestRequests: metrics.httpMetrics.largestRequests
-      },
-      wsStats: {
-        messageCount: metrics.websocketMetrics.messageCount,
-        avgMessageSize: metrics.websocketMetrics.averageMessageSize,
-        connectionDuration: metrics.websocketMetrics.connectionDuration
-      }
-    };
-  }
-
-  function getSecurityMetrics(metrics) {
-    if (!metrics) return null;
-    return {
-      insecureRequests: metrics.httpMetrics.securityIssues,
-      protocolUsage: {
-        http: metrics.httpMetrics.requests,
-        websocket: metrics.websocketMetrics.connections
-      }
-    };
-  }
-
-  function getErrorMetrics(metrics) {
-    if (!metrics) return null;
-    return {
-      statusCodes: metrics.httpMetrics.statusCodes,
-      wsErrors: metrics.websocketMetrics.errors,
-      errorRate: calculateErrorRate(metrics)
-    };
-  }
-
-  function getCacheMetrics(metrics) {
-    if (!metrics) return null;
-    return {
-      hits: metrics.httpMetrics.cacheHits,
-      misses: metrics.httpMetrics.cacheMisses,
-      hitRate: metrics.httpMetrics.cacheHits / 
-        (metrics.httpMetrics.cacheHits + metrics.httpMetrics.cacheMisses)
-    };
-  }
-
-  const getActionableInsights = (insights, persona) => {
-    switch(persona) {
-      case 'developer':
-        return insights.filter(i => 
-          i.scope === 'code' || 
-          i.scope === 'performance' ||
-          i.implementationComplexity <= 3 // Things developers can actually fix
-        );
-      
-      case 'qa':
-        return insights.filter(i => 
-          i.scope === 'testing' ||
-          i.scope === 'reliability' ||
-          i.requiresTestCase
-        );
-      
-      case 'salesEngineer':
-        return insights.filter(i => 
-          i.scope === 'business' ||
-          i.scope === 'userExperience' ||
-          i.hasBusinessMetric
-        );
-    }
-  };
-
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
-
+export function InsightsPanel({ metrics, insights, persona }) {
   if (!insights || insights.length === 0) {
     return <div>No insights available</div>;
   }
 
+  const filteredInsights = insights.filter(insight => {
+    switch(persona) {
+      case 'developer':
+        return insight.category === 'Performance' || insight.category === 'Cache';
+      case 'qa':
+        return insight.category === 'Errors' || insight.category === 'Security';
+      case 'salesEngineer':
+        return true; // Show all insights
+      default:
+        return true;
+    }
+  });
+
   return (
     <div className="insights-panel">
-      {insights.map((insight, index) => (
-        <div key={index} className="insight-box">
+      {filteredInsights.map((insight, index) => (
+        <div key={index} className={`insight-box ${insight.severity}`}>
           <h3>{insight.category}</h3>
           <p>{insight.content}</p>
         </div>
