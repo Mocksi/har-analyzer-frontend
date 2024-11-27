@@ -14,7 +14,7 @@ import {
   ArcElement
 } from 'chart.js';
 import './PerformanceCharts.css';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 Chart.register(
   CategoryScale,
@@ -39,7 +39,7 @@ function TimeSeriesChart({ data }) {
           tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
         />
         <YAxis />
-        <Tooltip 
+        <RechartsTooltip 
           labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
           formatter={(value) => `${value.toFixed(2)}ms`}
         />
