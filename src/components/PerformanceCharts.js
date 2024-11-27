@@ -1,47 +1,45 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { Bar, Pie } from 'react-chartjs-2';
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-} from 'chart.js';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 import './PerformanceCharts.css';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
-
-// Create the TimeSeriesChart component
 function TimeSeriesChart({ data }) {
+  // Add defensive check for data
+  if (!Array.isArray(data) || data.length === 0) {
+    return <div className="no-data">No timeline data available</div>;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
           dataKey="timestamp"
-          tickFormatter={(timestamp) => new Date(timestamp).toLocaleTimeString()}
+          tickFormatter={(timestamp) => {
+            try {
+              return new Date(timestamp).toLocaleTimeString();
+            } catch (e) {
+              return 'Invalid time';
+            }
+          }}
         />
         <YAxis />
-        <RechartsTooltip 
-          labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
-          formatter={(value) => `${value.toFixed(2)}ms`}
+        <RechartsTooltip
+          labelFormatter={(timestamp) => {
+            try {
+              return new Date(timestamp).toLocaleString();
+            } catch (e) {
+              return 'Invalid time';
+            }
+          }}
+          formatter={(value) => `${Number(value).toFixed(2)}ms`}
         />
         <Line 
           type="monotone" 
@@ -55,25 +53,30 @@ function TimeSeriesChart({ data }) {
 }
 
 export function PerformanceCharts({ metrics, persona }) {
+  // Add more detailed checks
   if (!metrics) {
     return <div className="charts-loading">Loading metrics...</div>;
   }
 
-  const timeseriesData = metrics.timeseries || [];
-  const domains = metrics.domains || [];
-  const requestTypes = metrics.requestsByType || {};
+  // Ensure timeseries exists and is an array
+  const timeseriesData = Array.isArray(metrics.timeseries) ? metrics.timeseries : [];
+  
+  // Transform and validate data
+  const chartData = timeseriesData
+    .filter(point => point && typeof point.timestamp !== 'undefined' && typeof point.responseTime !== 'undefined')
+    .map(point => ({
+      timestamp: point.timestamp,
+      value: Number(point.responseTime) || 0
+    }));
+
+  console.log('Chart data:', chartData); // Debug log
 
   return (
     <div className="charts-container">
       <div className="chart">
         <h3>Response Times Over Time</h3>
-        {timeseriesData.length > 0 ? (
-          <TimeSeriesChart 
-            data={timeseriesData.map(point => ({
-              timestamp: point.timestamp,
-              value: point.responseTime || 0
-            }))} 
-          />
+        {chartData.length > 0 ? (
+          <TimeSeriesChart data={chartData} />
         ) : (
           <div className="no-data">No timeline data available</div>
         )}
@@ -81,16 +84,5 @@ export function PerformanceCharts({ metrics, persona }) {
     </div>
   );
 }
-
-PerformanceCharts.propTypes = {
-  metrics: PropTypes.shape({
-    statusDistribution: PropTypes.object,
-    slowestRequests: PropTypes.arrayOf(PropTypes.shape({
-      url: PropTypes.string,
-      time: PropTypes.number
-    }))
-  }),
-  persona: PropTypes.string.isRequired
-};
 
 export default PerformanceCharts; 

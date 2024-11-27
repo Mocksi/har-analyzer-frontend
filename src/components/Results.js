@@ -26,12 +26,17 @@ export function Results() {
   const MAX_RETRIES = 30; // 30 retries = 2.5 minutes with 5s intervals
 
   const processData = (rawData) => {
-    if (!rawData) return null;
+    if (!rawData || !rawData.metrics) {
+      console.log('Invalid raw data:', rawData); // Debug log
+      return null;
+    }
 
     // Ensure metrics has required structure
     const metrics = {
       domains: rawData.metrics?.domains || [],
-      timeseries: rawData.metrics?.timeseries || [],
+      timeseries: Array.isArray(rawData.metrics.timeseries) 
+        ? rawData.metrics.timeseries 
+        : [],
       requestsByType: rawData.metrics?.requestsByType || {},
       primary: rawData.metrics?.primary || {
         errorRate: 0,
@@ -47,10 +52,12 @@ export function Results() {
       ...rawData.metrics
     };
 
-    // Ensure insights is an array
-    const insights = Array.isArray(rawData.insights) ? rawData.insights : [];
+    console.log('Processed metrics:', metrics); // Debug log
 
-    return { metrics, insights };
+    return {
+      metrics,
+      insights: Array.isArray(rawData.insights) ? rawData.insights : []
+    };
   };
 
   const fetchResults = async () => {
@@ -67,31 +74,20 @@ export function Results() {
       }
       
       if (response.data) {
+        console.log('Raw response:', response.data); // Debug log
         const processedData = processData(response.data);
-        setData(processedData);
-        setError(null);
-        return true;
+        if (processedData) {
+          setData(processedData);
+          setError(null);
+        } else {
+          setError('Invalid data structure received');
+        }
       }
       
       return false;
     } catch (err) {
-      console.log('Error fetching results:', err.response?.status);
-      if (err.response?.status === 404) {
-        const cachedData = localStorage.getItem(`results-${jobId}`);
-        if (cachedData) {
-          console.log('Using cached data');
-          setData(JSON.parse(cachedData));
-          setError(null);
-          return true;
-        }
-        // If no cached data and not max retries, continue polling
-        if (retryCount < MAX_RETRIES) {
-          console.log('No cache, continuing to poll');
-          setRetryCount(prev => prev + 1);
-          return false;
-        }
-      }
-      setError(err.response?.data?.error || 'Failed to fetch results');
+      console.error('Error fetching results:', err);
+      setError(err.message);
       return true; // Stop polling on other errors
     } finally {
       setLoading(false);
