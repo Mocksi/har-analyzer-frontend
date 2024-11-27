@@ -58,23 +58,37 @@ export function Upload() {
     setError('');
     setUploading(true);
 
-    const formData = new FormData();
-    formData.append('harFile', file);
-    formData.append('persona', 'developer');
-
     try {
+      // Read the file content
+      const fileContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+      });
+
+      // Parse the HAR content
+      const harContent = JSON.parse(fileContent);
+
+      // Send the parsed JSON directly instead of FormData
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/analyze`,
-        formData,
+        harContent,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
           },
         }
       );
+      
       navigate(`/results/${response.data.jobId}`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to upload file');
+      console.error('Upload error:', err);
+      if (err.name === 'SyntaxError') {
+        setError('Invalid HAR file format');
+      } else {
+        setError(err.response?.data?.error || 'Failed to upload file');
+      }
     } finally {
       setUploading(false);
     }
