@@ -53,7 +53,6 @@ function TimeSeriesChart({ data }) {
 }
 
 export function PerformanceCharts({ metrics, persona }) {
-  // Add more detailed checks
   if (!metrics) {
     return <div className="charts-loading">Loading metrics...</div>;
   }
@@ -61,15 +60,15 @@ export function PerformanceCharts({ metrics, persona }) {
   // Ensure timeseries exists and is an array
   const timeseriesData = Array.isArray(metrics.timeseries) ? metrics.timeseries : [];
   
-  // Transform and validate data
+  // Transform and validate data - only include points with valid timestamps and responseTime
   const chartData = timeseriesData
-    .filter(point => point && typeof point.timestamp !== 'undefined' && typeof point.responseTime !== 'undefined')
+    .filter(point => point && typeof point.timestamp === 'number' && typeof point.responseTime === 'number')
     .map(point => ({
       timestamp: point.timestamp,
-      value: Number(point.responseTime) || 0
+      value: point.responseTime
     }));
 
-  console.log('Chart data:', chartData); // Debug log
+  console.log('Transformed chart data:', chartData); // Debug the data structure
 
   return (
     <div className="charts-container">
@@ -78,7 +77,7 @@ export function PerformanceCharts({ metrics, persona }) {
         {chartData.length > 0 ? (
           <TimeSeriesChart data={chartData} />
         ) : (
-          <div className="no-data">No timeline data available</div>
+          <div className="no-data">No valid timeline data available</div>
         )}
       </div>
     </div>

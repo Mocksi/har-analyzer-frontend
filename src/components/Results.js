@@ -67,28 +67,29 @@ export function Results() {
         `${process.env.REACT_APP_API_URL}/results/${jobId}?persona=${currentPersona}`
       );
       
-      if (response.status === 202) {
+      console.log('Response:', response.data); // Debug the actual response
+
+      if (response.data.status === 'processing') {
         console.log('Job still processing...');
         setRetryCount(prev => prev + 1);
         return false;
       }
       
-      if (response.data) {
-        console.log('Raw response:', response.data); // Debug log
+      if (response.data.metrics) {
         const processedData = processData(response.data);
         if (processedData) {
           setData(processedData);
           setError(null);
-        } else {
-          setError('Invalid data structure received');
+          return true;
         }
       }
-      
+
+      setError('Invalid response format');
       return false;
-    } catch (err) {
-      console.error('Error fetching results:', err);
-      setError(err.message);
-      return true; // Stop polling on other errors
+    } catch (error) {
+      console.error('Error fetching results:', error);
+      setError(error.message);
+      return false;
     } finally {
       setLoading(false);
     }
