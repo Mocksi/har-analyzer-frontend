@@ -8,7 +8,7 @@ import SearchAndFilter from './SearchAndFilter';
 import MetricsDrilldown from './MetricsDrilldown';
 import MetricsPanel from './MetricsPanel';
 import PerformanceCharts from './PerformanceCharts';
-import InsightsPanel from './InsightsPanel';
+import { InsightsPanel } from './InsightsPanel';
 import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 import './Results.css';
